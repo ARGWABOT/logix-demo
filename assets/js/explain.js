@@ -1,5 +1,5 @@
 /* ============================================================
-   Logix · motor de explicación animada
+   Quattro Way Logistics · motor de explicación animada
    Al pulsar una acción no se ejecuta la lógica real: se lanza
    una coreografía que narra, paso a paso, lo que hace el sistema.
    ============================================================ */
@@ -21,9 +21,25 @@ window.Explain = (function(){
     blocked: {
       p:'xp.blocked', ok:false,
       steps:[ ['s1',900,'done'], ['s2',1300,'fail'], ['s3',800,'fail'] ]
+    },
+
+    approve: {
+      p:'xp.approve', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1200,'done'], ['s3',900,'done'],
+              ['s4',900,'done'], ['s5',700,'done'] ]
+    },
+
+    conflict: {
+      p:'xp.conflict', ok:false,
+      steps:[ ['s1',800,'done'], ['s2',1200,'fail'], ['s3',800,'fail'], ['s4',900,'done'] ]
+    },
+
+    cert: {
+      p:'xp.cert', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',800,'done'] ]
     }
 
-    /* las fases B y C añaden aquí: request, conflict, offline, ai… */
+    /* la fase C añade aquí: offline, ai… */
   };
 
   var el = {}, timers = [], open = false;

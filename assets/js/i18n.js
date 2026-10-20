@@ -1,5 +1,5 @@
 /* ============================================================
-   Logix · diccionario EN / ES / PT
+   Quattro Way Logistics · diccionario EN / ES / PT
    Clave -> cadena. Sin duplicar HTML.
    ============================================================ */
 window.I18N = {
@@ -101,6 +101,48 @@ window.I18N = {
     'xp.blocked.rt':'This is the difference',
     'xp.blocked.rd':'An expired torque wrench invalidates every bolted joint it touches. The platform stops it before the van leaves.',
     'xp.blocked.n':'A supervisor can authorise an exception, and it is logged.',
+
+    'cmp.valid':'Valid', 'cmp.due':'Due soon', 'cmp.expired':'Expired · blocked',
+    'cmp.kind.calibration':'Calibration', 'cmp.kind.inspection':'Inspection',
+    'cmp.col.kind':'Control', 'cmp.col.cert':'Certificate', 'cmp.col.due':'Due in',
+    'cmp.viewCert':'Certificate', 'cmp.lead':'Every asset carries its own control. When a date lapses, the platform stops the handover by itself.',
+    'cmp.overdueBy':'{d} days overdue',
+
+    'req.pending':'Pending', 'req.approved':'Approved',
+    'req.lead':'Requests arrive from the field into one queue, with real availability already checked.',
+    'req.by':'Requested by', 'req.for':'For', 'req.window':'Window',
+    'req.items':'{n} items', 'req.ago':'{h}h ago', 'req.approve':'Approve',
+    'req.adjust':'Adjust', 'req.conflictItem':'Not available', 'req.warnItem':'Expires during window',
+
+    'cam.lead':'Who holds what, and when it comes back. Overlaps are refused before they reach the site.',
+    'cam.book':'Book equipment', 'cam.crew':'Crew', 'cam.unassigned':'Unassigned',
+
+    'xp.approve.t':'Approving a request from the field',
+    'xp.approve.s1':'Request received', 'xp.approve.s1d':'Submitted from the phone by the technician, 12 minutes ago.',
+    'xp.approve.s2':'Availability verified', 'xp.approve.s2d':'Every item checked against the live calendar for those dates.',
+    'xp.approve.s3':'Compliance confirmed', 'xp.approve.s3d':'No certificate expires inside the requested window.',
+    'xp.approve.s4':'Pick list generated', 'xp.approve.s4d':'The warehouse sees exactly what to prepare, and where it is.',
+    'xp.approve.s5':'Technician notified', 'xp.approve.s5d':'Push to the phone with the collection time.',
+    'xp.approve.rt':'Approved in one click',
+    'xp.approve.rd':'No calls, no spreadsheet, no surprise on the morning of the campaign.',
+    'xp.approve.n':'Rules can auto-approve routine requests and escalate only the rest.',
+
+    'xp.conflict.t':'Booking equipment that is already committed',
+    'xp.conflict.s1':'Dates selected', 'xp.conflict.s1d':'Bolt tensioner set M36, Tuesday to Friday.',
+    'xp.conflict.s2':'Availability checked', 'xp.conflict.s2d':'Already committed to the Gearbox torque campaign at Northfield I.',
+    'xp.conflict.s3':'Booking refused', 'xp.conflict.s3d':'The calendar will not let two sites claim the same asset.',
+    'xp.conflict.s4':'Alternatives offered', 'xp.conflict.s4d':'An equivalent set is free, or the window can shift by one day.',
+    'xp.conflict.rt':'The clash surfaces now, not on the day',
+    'xp.conflict.rd':'Two crews turning up for the same tensioner is a cancelled campaign. The calendar refuses it in advance.',
+    'xp.conflict.n':'Buffer time between bookings is configurable per asset.',
+
+    'xp.cert.t':'Opening a calibration certificate',
+    'xp.cert.s1':'Certificate located', 'xp.cert.s1d':'Attached to the asset record, not to a shared folder.',
+    'xp.cert.s2':'Validity checked', 'xp.cert.s2d':'Issuer, date and scope verified against the asset serial.',
+    'xp.cert.s3':'Ready to export', 'xp.cert.s3d':'Included automatically in any audit package for this asset.',
+    'xp.cert.rt':'The auditor question, answered',
+    'xp.cert.rd':'Which tool, under which certificate, in whose hands, on which turbine, on what date.',
+    'xp.cert.n':'Certificates can be bulk-imported from the calibration lab.',
 
     'tour.t':'Guided tour',
     'tour.d':'Walk through the platform in the order it is used on site.',
@@ -204,6 +246,48 @@ window.I18N = {
     'xp.blocked.rd':'Una dinamométrica vencida invalida cada unión que aprieta. La plataforma lo detiene antes de que salga la furgoneta.',
     'xp.blocked.n':'Un supervisor puede autorizar una excepción, y queda registrada.',
 
+    'cmp.valid':'Vigente', 'cmp.due':'Por vencer', 'cmp.expired':'Vencido · bloqueado',
+    'cmp.kind.calibration':'Calibración', 'cmp.kind.inspection':'Inspección',
+    'cmp.col.kind':'Control', 'cmp.col.cert':'Certificado', 'cmp.col.due':'Vence en',
+    'cmp.viewCert':'Certificado', 'cmp.lead':'Cada activo lleva su propio control. Cuando una fecha caduca, la plataforma detiene la entrega sola.',
+    'cmp.overdueBy':'{d} días vencido',
+
+    'req.pending':'Pendientes', 'req.approved':'Aprobadas',
+    'req.lead':'Las solicitudes llegan del campo a una sola bandeja, con la disponibilidad real ya comprobada.',
+    'req.by':'Solicita', 'req.for':'Para', 'req.window':'Ventana',
+    'req.items':'{n} artículos', 'req.ago':'hace {h} h', 'req.approve':'Aprobar',
+    'req.adjust':'Ajustar', 'req.conflictItem':'No disponible', 'req.warnItem':'Vence durante la ventana',
+
+    'cam.lead':'Quién tiene qué y cuándo vuelve. Los solapes se rechazan antes de llegar a obra.',
+    'cam.book':'Reservar equipo', 'cam.crew':'Cuadrilla', 'cam.unassigned':'Sin asignar',
+
+    'xp.approve.t':'Aprobar una solicitud del campo',
+    'xp.approve.s1':'Solicitud recibida', 'xp.approve.s1d':'Enviada desde el móvil por el técnico hace 12 minutos.',
+    'xp.approve.s2':'Disponibilidad verificada', 'xp.approve.s2d':'Cada artículo contrastado con el calendario real para esas fechas.',
+    'xp.approve.s3':'Cumplimiento confirmado', 'xp.approve.s3d':'Ningún certificado caduca dentro de la ventana solicitada.',
+    'xp.approve.s4':'Lista de preparación generada', 'xp.approve.s4d':'El almacén ve exactamente qué preparar y dónde está.',
+    'xp.approve.s5':'Técnico avisado', 'xp.approve.s5d':'Notificación al móvil con la hora de recogida.',
+    'xp.approve.rt':'Aprobada con un clic',
+    'xp.approve.rd':'Sin llamadas, sin hoja de cálculo y sin sorpresas la mañana de la campaña.',
+    'xp.approve.n':'Se pueden autoaprobar las solicitudes rutinarias y escalar solo el resto.',
+
+    'xp.conflict.t':'Reservar un equipo ya comprometido',
+    'xp.conflict.s1':'Fechas seleccionadas', 'xp.conflict.s1d':'Tensor de pernos M36, de martes a viernes.',
+    'xp.conflict.s2':'Disponibilidad comprobada', 'xp.conflict.s2d':'Ya comprometido en la campaña de par de multiplicadora en Northfield I.',
+    'xp.conflict.s3':'Reserva rechazada', 'xp.conflict.s3d':'El calendario no deja que dos parques reclamen el mismo activo.',
+    'xp.conflict.s4':'Alternativas ofrecidas', 'xp.conflict.s4d':'Hay un juego equivalente libre, o la ventana puede moverse un día.',
+    'xp.conflict.rt':'El choque sale ahora, no el día de la salida',
+    'xp.conflict.rd':'Dos cuadrillas presentándose a por el mismo tensor es una campaña cancelada. El calendario lo rechaza por adelantado.',
+    'xp.conflict.n':'El tiempo de colchón entre reservas se configura por activo.',
+
+    'xp.cert.t':'Abrir un certificado de calibración',
+    'xp.cert.s1':'Certificado localizado', 'xp.cert.s1d':'Adjunto a la ficha del activo, no a una carpeta compartida.',
+    'xp.cert.s2':'Validez comprobada', 'xp.cert.s2d':'Emisor, fecha y alcance verificados contra la serie del activo.',
+    'xp.cert.s3':'Listo para exportar', 'xp.cert.s3d':'Se incluye solo en cualquier expediente de auditoría de este activo.',
+    'xp.cert.rt':'La pregunta del auditor, respondida',
+    'xp.cert.rd':'Qué herramienta, con qué certificado, en manos de quién, en qué turbina y en qué fecha.',
+    'xp.cert.n':'Los certificados se pueden importar en bloque desde el laboratorio.',
+
     'tour.t':'Recorrido guiado',
     'tour.d':'Recorre la plataforma en el orden en que se usa en obra.',
   },
@@ -305,6 +389,48 @@ window.I18N = {
     'xp.blocked.rt':'Esta é a diferença',
     'xp.blocked.rd':'Uma dinamométrica expirada invalida cada ligação aparafusada que aperta. A plataforma trava isso antes de a carrinha sair.',
     'xp.blocked.n':'Um supervisor pode autorizar uma exceção, e fica registada.',
+
+    'cmp.valid':'Válido', 'cmp.due':'A expirar', 'cmp.expired':'Expirado · bloqueado',
+    'cmp.kind.calibration':'Calibração', 'cmp.kind.inspection':'Inspeção',
+    'cmp.col.kind':'Controlo', 'cmp.col.cert':'Certificado', 'cmp.col.due':'Expira em',
+    'cmp.viewCert':'Certificado', 'cmp.lead':'Cada ativo tem o seu próprio controlo. Quando uma data expira, a plataforma trava a entrega sozinha.',
+    'cmp.overdueBy':'{d} dias expirado',
+
+    'req.pending':'Pendentes', 'req.approved':'Aprovados',
+    'req.lead':'Os pedidos chegam do campo a uma só caixa, com a disponibilidade real já verificada.',
+    'req.by':'Pedido por', 'req.for':'Para', 'req.window':'Janela',
+    'req.items':'{n} artigos', 'req.ago':'há {h} h', 'req.approve':'Aprovar',
+    'req.adjust':'Ajustar', 'req.conflictItem':'Indisponível', 'req.warnItem':'Expira durante a janela',
+
+    'cam.lead':'Quem tem o quê e quando regressa. As sobreposições são recusadas antes de chegar à obra.',
+    'cam.book':'Reservar equipamento', 'cam.crew':'Equipa', 'cam.unassigned':'Por atribuir',
+
+    'xp.approve.t':'Aprovar um pedido do campo',
+    'xp.approve.s1':'Pedido recebido', 'xp.approve.s1d':'Enviado do telemóvel pelo técnico há 12 minutos.',
+    'xp.approve.s2':'Disponibilidade verificada', 'xp.approve.s2d':'Cada artigo confrontado com o calendário real para essas datas.',
+    'xp.approve.s3':'Conformidade confirmada', 'xp.approve.s3d':'Nenhum certificado expira dentro da janela pedida.',
+    'xp.approve.s4':'Lista de preparação gerada', 'xp.approve.s4d':'O armazém vê exatamente o que preparar e onde está.',
+    'xp.approve.s5':'Técnico notificado', 'xp.approve.s5d':'Notificação no telemóvel com a hora de recolha.',
+    'xp.approve.rt':'Aprovado com um clique',
+    'xp.approve.rd':'Sem chamadas, sem folha de cálculo e sem surpresas na manhã da campanha.',
+    'xp.approve.n':'É possível aprovar automaticamente os pedidos de rotina e escalar apenas o resto.',
+
+    'xp.conflict.t':'Reservar equipamento já comprometido',
+    'xp.conflict.s1':'Datas selecionadas', 'xp.conflict.s1d':'Conjunto tensionador M36, de terça a sexta.',
+    'xp.conflict.s2':'Disponibilidade verificada', 'xp.conflict.s2d':'Já comprometido na campanha de binário em Northfield I.',
+    'xp.conflict.s3':'Reserva recusada', 'xp.conflict.s3d':'O calendário não deixa dois locais reclamarem o mesmo ativo.',
+    'xp.conflict.s4':'Alternativas propostas', 'xp.conflict.s4d':'Há um conjunto equivalente livre, ou a janela pode mudar um dia.',
+    'xp.conflict.rt':'O conflito aparece agora, não no dia',
+    'xp.conflict.rd':'Duas equipas a aparecer para o mesmo tensionador é uma campanha cancelada. O calendário recusa isso com antecedência.',
+    'xp.conflict.n':'O tempo de folga entre reservas configura-se por ativo.',
+
+    'xp.cert.t':'Abrir um certificado de calibração',
+    'xp.cert.s1':'Certificado localizado', 'xp.cert.s1d':'Anexo à ficha do ativo, não a uma pasta partilhada.',
+    'xp.cert.s2':'Validade verificada', 'xp.cert.s2d':'Emissor, data e âmbito verificados contra a série do ativo.',
+    'xp.cert.s3':'Pronto a exportar', 'xp.cert.s3d':'Incluído automaticamente em qualquer dossiê de auditoria deste ativo.',
+    'xp.cert.rt':'A pergunta do auditor, respondida',
+    'xp.cert.rd':'Que ferramenta, com que certificado, nas mãos de quem, em que turbina e em que data.',
+    'xp.cert.n':'Os certificados podem ser importados em bloco do laboratório.',
 
     'tour.t':'Visita guiada',
     'tour.d':'Percorra a plataforma pela ordem em que é usada em obra.',

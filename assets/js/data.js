@@ -1,5 +1,5 @@
 /* ============================================================
-   Logix · datos ficticios de O&M eólico
+   Quattro Way Logistics · datos ficticios de O&M eólico
    Cliente genérico: Northfield Wind Services
    ============================================================ */
 window.DATA = (function(){
@@ -114,8 +114,90 @@ window.DATA = (function(){
     }).filter(function(x){ return x.n > 0; });
   }
 
+
+  /* ---------------- solicitudes (fase B) ----------------
+     state: pending | approved | rejected                       */
+  var REQUESTS = [
+    { id:'RQ-2291', tech:'t2', site:'nf2', campaign:'Blade inspection NF-II',
+      from:'Mon 24', to:'Thu 27', state:'pending', ago:12,
+      items:[ {code:'DR-INSP-02', ok:true}, {code:'TH-CAM-01', ok:true},
+              {code:'SRL-20-06', ok:'warn'} ] },
+    { id:'RQ-2290', tech:'t4', site:'nf1', campaign:'Gearbox torque campaign',
+      from:'Tue 25', to:'Fri 28', state:'pending', ago:48,
+      items:[ {code:'TW-2500-01', ok:false}, {code:'BT-SET-07', ok:true},
+              {code:'TM-900-01', ok:true}, {code:'CS-BOLT-M36', ok:true} ] },
+    { id:'RQ-2289', tech:'t5', site:'hbo', campaign:'Offshore rope access',
+      from:'Wed 26', to:'Wed 26', state:'pending', ago:95,
+      items:[ {code:'RK-EVAC-03', ok:true}, {code:'GD-4X-08', ok:true} ] },
+    { id:'RQ-2288', tech:'t1', site:'nf1', campaign:'Quarterly inspection',
+      from:'Mon 24', to:'Tue 25', state:'pending', ago:140,
+      items:[ {code:'MM-INS-04', ok:true}, {code:'TH-CAM-01', ok:'warn'} ] },
+    { id:'RQ-2287', tech:'t3', site:'nf2', campaign:'Yaw motor replacement',
+      from:'Thu 27', to:'Fri 28', state:'pending', ago:190,
+      items:[ {code:'CH-1T-05', ok:true}, {code:'WL-SLING-11', ok:true} ] },
+    { id:'RQ-2285', tech:'t1', site:'whs', campaign:'Tool calibration return',
+      from:'Fri 21', to:'Fri 21', state:'approved', ago:1440,
+      items:[ {code:'TW-1200-02', ok:true} ] }
+  ];
+
+  /* ---------------- campañas (fase B) ----------------
+     start/len en días dentro de una ventana de 14              */
+  var CAMPAIGNS = [
+    { id:'c1', name:'Gearbox torque campaign',  site:'nf1', color:'#0D9488', crew:'t4', start:1, len:4 },
+    { id:'c2', name:'Blade inspection NF-II',   site:'nf2', color:'#2563EB', crew:'t2', start:0, len:4 },
+    { id:'c3', name:'Offshore rope access',     site:'hbo', color:'#7C3AED', crew:'t5', start:2, len:1 },
+    { id:'c4', name:'Yaw motor replacement',    site:'nf2', color:'#B45309', crew:'t3', start:3, len:2 },
+    { id:'c5', name:'Quarterly inspection',     site:'nf1', color:'#0891B2', crew:'t1', start:0, len:2 },
+    { id:'c6', name:'Scheduled calibration',    site:'whs', color:'#64748B', crew:null,  start:8, len:3 }
+  ];
+
+  /* qué activo está comprometido en qué campaña */
+  var BOOKINGS = [
+    { code:'TW-2500-01',  camp:'c1' }, { code:'BT-SET-07', camp:'c1' },
+    { code:'TM-900-01',   camp:'c1' },
+    { code:'DR-INSP-02',  camp:'c2' }, { code:'TH-CAM-01', camp:'c2' },
+    { code:'RK-EVAC-03',  camp:'c3' },
+    { code:'CH-1T-05',    camp:'c4' }, { code:'WL-SLING-11', camp:'c4' },
+    { code:'MM-INS-04',   camp:'c5' },
+    { code:'BT-SET-03',   camp:'c6' }
+  ];
+
+  var DAYS = ['Mon 24','Tue 25','Wed 26','Thu 27','Fri 28','Sat 29','Sun 30',
+              'Mon 31','Tue 01','Wed 02','Thu 03','Fri 04','Sat 05','Sun 06'];
+
+  /* ---------------- cumplimiento (fase B) ----------------
+     tipo de control por categoría de activo                    */
+  var CERT_KIND = { torque:'calibration', measure:'calibration',
+                    lifting:'inspection', ppe:'inspection', consum:null };
+
+  function certs(){
+    return ASSETS.filter(function(a){ return a.cal !== null; }).map(function(a){
+      var state = (a.cal < 0) ? 'expired' : (a.cal <= 30 ? 'due' : 'valid');
+      return {
+        a:a, kind:CERT_KIND[a.cat] || 'calibration', state:state,
+        no:(CERT_KIND[a.cat]==='inspection' ? 'INS-' : 'CAL-') +
+           String(10000 + a.code.length*731 % 8999)
+      };
+    }).sort(function(x,y){ return x.a.cal - y.a.cal; });
+  }
+
+  function certCounts(){
+    var c = { valid:0, due:0, expired:0 };
+    certs().forEach(function(x){ c[x.state]++; });
+    return c;
+  }
+
+  function byCode(code){
+    return ASSETS.filter(function(a){ return a.code===code; })[0];
+  }
+  function byCamp(id){
+    return CAMPAIGNS.filter(function(c){ return c.id===id; })[0];
+  }
+
   return {
     sites:SITES, techs:TECHS, assets:ASSETS, activity:ACTIVITY, util:UTIL,
-    bySite:bySite, byTech:byTech, counts:counts, siteLoad:siteLoad
+    requests:REQUESTS, campaigns:CAMPAIGNS, bookings:BOOKINGS, days:DAYS,
+    bySite:bySite, byTech:byTech, byCode:byCode, byCamp:byCamp,
+    counts:counts, siteLoad:siteLoad, certs:certs, certCounts:certCounts
   };
 })();

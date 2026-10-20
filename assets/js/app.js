@@ -1,5 +1,5 @@
 /* ============================================================
-   Logix · arranque, navegación por hash y render de pantallas
+   Quattro Way Logistics · arranque, navegación por hash y render de pantallas
    ============================================================ */
 (function(){
 
@@ -8,9 +8,9 @@
   var SCREENS = [
     { id:'dashboard',   icon:'i-grid',     build:dashboard },
     { id:'inventory',   icon:'i-box',      build:inventory },
-    { id:'compliance',  icon:'i-shield',   build:soon, badge:'3' },
-    { id:'requests',    icon:'i-inbox',    build:soon, badge:'5' },
-    { id:'campaigns',   icon:'i-calendar', build:soon },
+    { id:'compliance',  icon:'i-shield',   build:compliance, badge:'3' },
+    { id:'requests',    icon:'i-inbox',    build:requests,   badge:'5' },
+    { id:'campaigns',   icon:'i-calendar', build:campaigns },
     { id:'technicians', icon:'i-users',    build:soon },
     { id:'field',       icon:'i-phone',    build:soon },
     { id:'ai',          icon:'i-spark',    build:soon }
@@ -235,6 +235,145 @@
       '<td>'+(who ? esc(who.name) : '<span class="sub">'+t('inv.unassigned')+'</span>')+'</td>' +
       '<td>'+calTag(a)+'</td>' +
       '<td class="r">'+btn+'</td></tr>';
+  }
+
+
+  /* ---------------- pantalla: cumplimiento ---------------- */
+  var cmpFilter = 'all';
+
+  function compliance(view){
+    var list = D.certs(), c = D.certCounts();
+    var shown = (cmpFilter === 'all') ? list
+              : list.filter(function(x){ return x.state === cmpFilter; });
+
+    function tcard(key, n, labelKey){
+      return '<div class="t-c ' + key + (cmpFilter===key ? ' sel' : '') +
+             '" data-cmp="' + key + '">' +
+             '<span class="t-n">' + n + '</span>' +
+             '<span class="t-l">' + t(labelKey) + '</span></div>';
+    }
+
+    view.innerHTML =
+      '<p class="lead">' + t('cmp.lead') + '</p>' +
+      '<div class="tri">' +
+        tcard('valid', c.valid, 'cmp.valid') +
+        tcard('due', c.due, 'cmp.due') +
+        tcard('expired', c.expired, 'cmp.expired') +
+      '</div>' +
+      '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+        '<th>' + t('col.asset') + '</th><th>' + t('col.code') + '</th>' +
+        '<th>' + t('cmp.col.kind') + '</th><th>' + t('cmp.col.cert') + '</th>' +
+        '<th>' + t('cmp.col.due') + '</th><th></th>' +
+      '</tr></thead><tbody>' + shown.map(certRow).join('') + '</tbody></table></div></div>';
+
+    view.querySelectorAll('[data-cmp]').forEach(function(b){
+      b.addEventListener('click', function(){
+        cmpFilter = (cmpFilter === b.dataset.cmp) ? 'all' : b.dataset.cmp;
+        compliance(view);
+      });
+    });
+  }
+
+  function certRow(x){
+    var a = x.a, due;
+    if (x.state === 'expired')   due = '<span class="st danger">' + t('cmp.overdueBy',{d:Math.abs(a.cal)}) + '</span>';
+    else if (x.state === 'due')  due = '<span class="st warn">' + a.cal + 'd</span>';
+    else                         due = '<span class="sub">' + a.cal + 'd</span>';
+
+    return '<tr>' +
+      '<td><div class="nm">' + esc(a.name) + '</div>' +
+        '<div class="sub">' + esc(a.model) + '</div></td>' +
+      '<td><span class="code">' + esc(a.code) + '</span></td>' +
+      '<td>' + t('cmp.kind.' + x.kind) + '</td>' +
+      '<td><span class="code">' + esc(x.no) + '</span></td>' +
+      '<td>' + due + '</td>' +
+      '<td class="r"><button class="btn sm ghost" data-xp="cert">' +
+        t('cmp.viewCert') + '</button></td></tr>';
+  }
+
+  /* ---------------- pantalla: solicitudes ---------------- */
+  function requests(view){
+    var pend = D.requests.filter(function(r){ return r.state === 'pending'; });
+
+    view.innerHTML =
+      '<p class="lead">' + t('req.lead') + '</p>' +
+      '<div class="reqs">' + pend.map(reqCard).join('') + '</div>';
+  }
+
+  function reqCard(r){
+    var tech = D.byTech(r.tech), site = D.bySite(r.site);
+
+    var items = r.items.map(function(it){
+      var cls = (it.ok === true) ? 'ok' : (it.ok === 'warn' ? 'warn' : 'bad');
+      var icon = (it.ok === true) ? 'i-check' : (it.ok === 'warn' ? 'i-clock' : 'i-x');
+      var note = (it.ok === true) ? '' :
+                 ' · ' + t(it.ok === 'warn' ? 'req.warnItem' : 'req.conflictItem');
+      return '<span class="req-i ' + cls + '">' + ic(icon) + esc(it.code) + esc(note) + '</span>';
+    }).join('');
+
+    return '<div class="req">' +
+      '<div class="req-h">' +
+        '<div class="req-av">' + esc(tech.initials) + '</div>' +
+        '<div class="req-t"><b>' + esc(r.campaign) + '</b>' +
+          '<span>' + t('req.by') + ' ' + esc(tech.name) + ' · ' + esc(tech.role) + '</span></div>' +
+        '<span class="req-id">' + esc(r.id) + '</span>' +
+      '</div>' +
+      '<div class="req-meta">' +
+        '<span>' + t('req.for') + ' <b>' + esc(site.name) + '</b></span>' +
+        '<span>' + t('req.window') + ' <b>' + esc(r.from) + ' → ' + esc(r.to) + '</b></span>' +
+        '<span>' + t('req.items',{n:r.items.length}) + '</span>' +
+        '<span>' + t('req.ago',{h:Math.round(r.ago/60)}) + '</span>' +
+      '</div>' +
+      '<div class="req-items">' + items + '</div>' +
+      '<div class="req-f"><span></span><div class="btn-row">' +
+        '<button class="btn sm ghost" data-xp="conflict">' + t('req.adjust') + '</button>' +
+        '<button class="btn sm" data-xp="approve">' + t('req.approve') + '</button>' +
+      '</div></div></div>';
+  }
+
+  /* ---------------- pantalla: campañas ---------------- */
+  function campaigns(view){
+    var days = D.days;
+    var we = function(i){ return (i % 7 === 5 || i % 7 === 6); };
+
+    var head = '<div class="g-row g-head"><div class="g-lbl"></div><div class="g-days">' +
+      days.map(function(d, i){
+        return '<div class="' + (we(i) ? 'we' : '') + '">' + esc(d) + '</div>';
+      }).join('') + '</div></div>';
+
+    var rows = D.bookings.map(function(b){
+      var a = D.byCode(b.code), camp = D.byCamp(b.camp);
+      if (!a || !camp) return '';
+      var left = (camp.start / 14 * 100), width = (camp.len / 14 * 100);
+      var clash = (b.code === 'BT-SET-07') ? ' clash' : '';
+
+      var cells = days.map(function(d, i){
+        return '<i class="' + (we(i) ? 'we' : '') + '"></i>';
+      }).join('');
+
+      return '<div class="g-row">' +
+        '<div class="g-lbl"><b>' + esc(a.name) + '</b>' +
+          '<span>' + esc(a.code) + '</span></div>' +
+        '<div class="g-cells"><div class="g-grid">' + cells + '</div>' +
+          '<div class="g-bar' + clash + '" data-xp="conflict" ' +
+          'style="left:' + left.toFixed(2) + '%;width:calc(' + width.toFixed(2) + '% - 4px);' +
+          'background:' + camp.color + '">' + esc(camp.name) + '</div>' +
+        '</div></div>';
+    }).join('');
+
+    var legend = D.campaigns.map(function(c){
+      var crew = c.crew ? D.byTech(c.crew) : null;
+      return '<span><i style="background:' + c.color + '"></i>' + esc(c.name) +
+             ' · ' + (crew ? esc(crew.name) : t('cam.unassigned')) + '</span>';
+    }).join('');
+
+    view.innerHTML =
+      '<p class="lead">' + t('cam.lead') + '</p>' +
+      '<div class="gantt"><div class="g-scroll"><div class="g-tbl">' +
+        head + rows +
+      '</div></div><div class="g-legend">' + legend + '</div></div>' +
+      '<div class="btn-row" style="margin-top:16px">' +
+        '<button class="btn" data-xp="conflict">' + t('cam.book') + '</button></div>';
   }
 
   /* ---------------- pantallas pendientes ---------------- */

@@ -1,5 +1,5 @@
 /* ============================================================
-   Logix · demo comercial — hoja de estilo única
+   Quattro Way Logistics · demo comercial — hoja de estilo única
    Sin dependencias externas. Tipografía autoalojada.
    ============================================================ */
 
@@ -276,3 +276,82 @@ table.tbl td.r{text-align:right}
   .row.k4,.row.k3,.row.k2{grid-template-columns:1fr}
   .top{flex-wrap:wrap} .search{width:100%}
 }
+
+/* ===================== fase B ===================== */
+
+/* texto guía bajo el título de pantalla */
+.lead{font-size:14.5px; color:var(--mute); max-width:720px; margin:-4px 0 18px}
+
+/* resumen de tres estados */
+.tri{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px}
+.tri .t-c{background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:16px 18px; display:flex; align-items:center; gap:14px; box-shadow:var(--shadow)}
+.tri .t-c.sel{border-width:2px; padding:15px 17px}
+.tri .t-c.valid.sel{border-color:var(--ok)}
+.tri .t-c.due.sel{border-color:var(--warn)}
+.tri .t-c.expired.sel{border-color:var(--danger)}
+.tri .t-n{font-size:28px; font-weight:800; letter-spacing:-.035em; line-height:1;
+  font-variant-numeric:tabular-nums}
+.tri .valid .t-n{color:var(--ok)} .tri .due .t-n{color:var(--warn)}
+.tri .expired .t-n{color:var(--danger)}
+.tri .t-l{font-size:13px; font-weight:600; color:var(--body)}
+.tri .t-c{cursor:pointer; transition:.15s}
+.tri .t-c:hover{border-color:var(--mute)}
+
+/* ---- solicitudes ---- */
+.reqs{display:grid; gap:12px}
+.req{background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:16px 18px; box-shadow:var(--shadow)}
+.req-h{display:flex; align-items:flex-start; gap:12px; margin-bottom:12px}
+.req-av{width:34px; height:34px; border-radius:50%; flex:none; background:var(--accent-soft);
+  color:var(--accent-dk); display:grid; place-items:center; font-size:12px; font-weight:700}
+.req-t{flex:1; min-width:0}
+.req-t b{display:block; color:var(--ink); font-size:14.5px; font-weight:650}
+.req-t span{display:block; font-size:12.5px; color:var(--mute)}
+.req-id{font-family:ui-monospace,Menlo,Consolas,monospace; font-size:11.5px; color:var(--mute);
+  background:var(--bg); border:1px solid var(--line); padding:2px 7px; border-radius:6px}
+.req-meta{display:flex; flex-wrap:wrap; gap:16px; font-size:12.5px; color:var(--mute);
+  padding:10px 0; border-top:1px solid var(--line-2); border-bottom:1px solid var(--line-2)}
+.req-meta b{color:var(--ink); font-weight:600}
+.req-items{display:flex; flex-wrap:wrap; gap:7px; padding:12px 0}
+.req-i{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+  padding:4px 10px; border-radius:999px; border:1px solid var(--line); background:var(--bg);
+  color:var(--body)}
+.req-i.ok{border-color:var(--accent-line); background:var(--accent-soft); color:var(--accent-dk)}
+.req-i.warn{border-color:#FAE6C2; background:var(--warn-soft); color:var(--warn)}
+.req-i.bad{border-color:#FBD5DF; background:var(--danger-soft); color:var(--danger)}
+.req-i .ic{width:12px; height:12px}
+.req-f{display:flex; align-items:center; justify-content:space-between; gap:12px; padding-top:4px}
+
+/* ---- planificador de campañas ---- */
+.gantt{background:var(--card); border:1px solid var(--line); border-radius:var(--r-lg);
+  box-shadow:var(--shadow); overflow:hidden}
+.g-scroll{overflow-x:auto}
+.g-tbl{min-width:860px}
+.g-row{display:grid; grid-template-columns:210px 1fr; align-items:center;
+  border-top:1px solid var(--line-2)}
+.g-row:first-child{border-top:0}
+.g-head{background:var(--bg); position:sticky; top:0; z-index:2}
+.g-lbl{padding:11px 16px; font-size:13px; min-width:0}
+.g-lbl b{display:block; color:var(--ink); font-weight:650; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis}
+.g-lbl span{display:block; font-size:11.5px; color:var(--mute)}
+.g-days{display:grid; grid-template-columns:repeat(14,1fr); position:relative; height:100%}
+.g-head .g-days div{font-size:10.5px; font-weight:700; color:var(--mute); text-align:center;
+  padding:11px 0; letter-spacing:.02em; border-left:1px solid var(--line-2)}
+.g-head .g-days div.we{background:#EEF3F8}
+.g-cells{position:relative; height:46px}
+.g-grid{position:absolute; inset:0; display:grid; grid-template-columns:repeat(14,1fr)}
+.g-grid i{border-left:1px solid var(--line-2); display:block}
+.g-grid i.we{background:#FAFCFE}
+.g-bar{position:absolute; top:11px; height:24px; border-radius:7px; color:#fff;
+  font-size:11.5px; font-weight:650; display:flex; align-items:center; padding:0 10px;
+  white-space:nowrap; overflow:hidden; cursor:pointer; transition:.15s;
+  box-shadow:0 1px 3px rgba(11,18,32,.18)}
+.g-bar:hover{filter:brightness(1.08); transform:translateY(-1px)}
+.g-bar.clash{outline:2px dashed var(--danger); outline-offset:2px}
+.g-legend{display:flex; flex-wrap:wrap; gap:14px; padding:14px 18px;
+  border-top:1px solid var(--line-2); font-size:12px; color:var(--mute)}
+.g-legend i{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px}
+
+@media (max-width:860px){ .tri{grid-template-columns:1fr} }
