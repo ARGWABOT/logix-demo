@@ -11,9 +11,9 @@
     { id:'compliance',  icon:'i-shield',   build:compliance, badge:'3' },
     { id:'requests',    icon:'i-inbox',    build:requests,   badge:'5' },
     { id:'campaigns',   icon:'i-calendar', build:campaigns },
-    { id:'technicians', icon:'i-users',    build:soon },
-    { id:'field',       icon:'i-phone',    build:soon },
-    { id:'ai',          icon:'i-spark',    build:soon }
+    { id:'technicians', icon:'i-users',    build:technicians },
+    { id:'field',       icon:'i-phone',    build:field },
+    { id:'ai',          icon:'i-spark',    build:ai }
   ];
 
   /* ---------------- utilidades ---------------- */
@@ -374,6 +374,220 @@
       '</div></div><div class="g-legend">' + legend + '</div></div>' +
       '<div class="btn-row" style="margin-top:16px">' +
         '<button class="btn" data-xp="conflict">' + t('cam.book') + '</button></div>';
+  }
+
+
+  /* ---------------- pantalla: técnicos ---------------- */
+  var UNL_KEY = { height:'tec.height', lifting:'tec.lifting',
+                  torque:'tec.torque', gas:'tec.gas' };
+  var UNL_ALL = ['height','lifting','torque','gas'];
+
+  function technicians(view){
+    view.innerHTML =
+      '<p class="lead">' + t('tec.lead') + '</p>' +
+      '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+        '<th>' + t('tec.col.tech') + '</th><th>' + t('tec.col.role') + '</th>' +
+        '<th>' + t('tec.col.gwo') + '</th><th>' + t('tec.col.unlocks') + '</th><th></th>' +
+      '</tr></thead><tbody>' + D.techs.map(techRow).join('') + '</tbody></table></div></div>';
+  }
+
+  function techRow(x){
+    var has = D.unlocks(x.id), expired = (x.gwoDays < 0);
+
+    var gwo = expired
+      ? '<span class="st danger">' + t('tec.expired',{d:Math.abs(x.gwoDays)}) + '</span>'
+      : (x.gwoDays < 30
+          ? '<span class="st warn">' + t('tec.expiring',{d:x.gwoDays}) + '</span>'
+          : '<span class="st ok">' + t('tec.valid') + '</span>');
+
+    var unl = UNL_ALL.map(function(k){
+      var on = has.indexOf(k) !== -1;
+      return '<span class="' + (on ? '' : 'no') + '">' + t(UNL_KEY[k]) + '</span>';
+    }).join('');
+
+    return '<tr>' +
+      '<td><div class="tec-n"><span class="tec-av">' + esc(x.initials) + '</span>' +
+        '<span class="nm">' + esc(x.name) + '</span></div></td>' +
+      '<td><span class="sub">' + esc(x.role) + '</span></td>' +
+      '<td>' + gwo + '</td>' +
+      '<td><div class="unl">' + unl + '</div></td>' +
+      '<td class="r">' + (expired
+        ? '<button class="btn sm danger" data-xp="gwo">' + t('tec.check') + '</button>'
+        : '') + '</td></tr>';
+  }
+
+  /* ---------------- pantalla: app de campo ---------------- */
+  var fldOnline = false;
+
+  function field(view){
+    var q = D.queue;
+
+    var items = q.map(function(x, i){
+      return '<div class="ph-i" data-q="' + i + '">' +
+        '<span class="ph-dot ' + x.kind + '"></span>' +
+        '<span><b>' + t(x.k) + '</b><span>' + x.min + ' min</span></span></div>';
+    }).join('');
+
+    view.innerHTML =
+      '<p class="lead">' + t('fld.lead') + '</p>' +
+      '<div class="fld">' +
+        '<div class="phone"><div class="phone-s">' +
+          '<div class="ph-bar"><span>09:41</span>' +
+            '<span class="ph-net" id="ph-net">' + ic('i-signal') +
+            '<span id="ph-net-t">' + t('fld.offline') + '</span></span></div>' +
+          '<div class="ph-head"><b>Quattro Way</b>' +
+            '<span id="ph-sub">' + t('fld.queued',{n:q.length}) + '</span></div>' +
+          '<div class="ph-scan">' + ic('i-scan') +
+            '<b>' + t('fld.scan') + '</b></div>' +
+          '<div class="ph-q"><h4>' + t('fld.lastScan') + '</h4>' +
+            '<div id="ph-list">' + items + '</div></div>' +
+          '<div class="ph-sign">' + sigSvg() + '<span>' + t('fld.signature') + '</span></div>' +
+        '</div></div>' +
+
+        '<div class="fld-side">' +
+          '<div class="card"><div class="card-b">' +
+            '<p style="margin:0 0 14px;color:var(--body)">' + t('fld.caption') + '</p>' +
+            '<button class="btn" id="btn-sync">' + t('fld.sync') + '</button>' +
+          '</div></div>' +
+        '</div>' +
+      '</div>';
+
+    var btn = view.querySelector('#btn-sync');
+    btn.addEventListener('click', function(){
+      Explain.run('sync');
+      btn.disabled = true;
+      setTimeout(doSync, 1400);
+    });
+  }
+
+  function doSync(){
+    var net = document.getElementById('ph-net');
+    var txt = document.getElementById('ph-net-t');
+    var sub = document.getElementById('ph-sub');
+    var list = document.getElementById('ph-list');
+    if (!net) return;
+
+    net.classList.add('on');
+    txt.textContent = t('fld.online').split(' · ')[0];
+
+    var rows = list.querySelectorAll('.ph-i');
+    rows.forEach(function(r, i){
+      setTimeout(function(){ r.classList.add('gone'); }, 500 + i*380);
+    });
+    setTimeout(function(){
+      if (sub) sub.textContent = t('fld.online');
+      toast(t('fld.online'));
+      fldOnline = true;
+    }, 500 + rows.length*380 + 300);
+  }
+
+  function sigSvg(){
+    return '<svg class="sig" viewBox="0 0 120 40" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.4" stroke-linecap="round"><path d="M6 28c8-14 12 6 18-2s6-16 12-10' +
+      ' 4 18 11 14 9-20 16-14 3 16 10 14 9-10 14-14 10 6 18 4"/></svg>';
+  }
+
+  /* ---------------- pantalla: asistente de IA ---------------- */
+  var aiAsked = [];
+
+  function ai(view){
+    view.innerHTML =
+      '<p class="lead">' + t('ai.lead') + '</p>' +
+      '<div class="chat" id="chat"></div>' +
+      '<p class="ai-ask">' + t('ai.try') + '</p>' +
+      '<div class="ai-sug" id="sug">' +
+        D.ai.map(function(a){
+          return '<button data-ai="' + a.id + '"' +
+            (aiAsked.indexOf(a.id) !== -1 ? ' disabled' : '') + '>' +
+            t('ai.' + a.id) + '</button>';
+        }).join('') +
+      '</div>';
+
+    aiAsked.forEach(function(id){ aiRender(id, true); });
+
+    view.querySelectorAll('[data-ai]').forEach(function(b){
+      b.addEventListener('click', function(){
+        if (b.disabled) return;
+        b.disabled = true;
+        aiAsked.push(b.dataset.ai);
+        aiRender(b.dataset.ai, false);
+      });
+    });
+  }
+
+  function aiRender(id, instant){
+    var def = D.ai.filter(function(a){ return a.id === id; })[0];
+    var chat = document.getElementById('chat');
+    if (!def || !chat) return;
+
+    chat.appendChild(h('<div class="bub me">' + esc(t('ai.' + id)) + '</div>'));
+
+    var box = h('<div class="bub ai"><div class="think"><i></i><i></i><i></i>' +
+                '<span>' + t('ai.thinking') + '</span></div></div>');
+    chat.appendChild(box);
+    chat.scrollIntoView({ block:'end', behavior:'smooth' });
+
+    function paint(){
+      box.innerHTML = '<b>' + esc(t('ai.a' + id.slice(1))) + '</b>' +
+        '<div class="ai-out"><div class="ai-unit">' + t(def.unit) + '</div>' +
+        (def.kind === 'table' ? aiTable(def) : aiBars(def)) +
+        '<div class="btn-row" style="margin-top:14px">' +
+          '<button class="btn sm ghost" data-csv="' + id + '">' + t('ai.csv') + '</button>' +
+        '</div></div>';
+
+      requestAnimationFrame(function(){
+        box.querySelectorAll('.tr i').forEach(function(bar){
+          bar.style.width = bar.dataset.w + '%';
+        });
+      });
+
+      var dl = box.querySelector('[data-csv]');
+      if (dl) dl.addEventListener('click', function(){ aiCsv(def); });
+    }
+
+    if (instant) paint(); else setTimeout(paint, 1500);
+  }
+
+  function aiBars(def){
+    var max = Math.max.apply(null, def.rows.map(function(r){ return r[1]; }));
+    return '<div class="ai-bars">' + def.rows.map(function(r){
+      var pct = (r[1] / max * 100).toFixed(1);
+      return '<div class="ai-b"><span class="lb">' + esc(r[0]) + '</span>' +
+        '<span class="tr"><i data-w="' + pct + '"></i></span>' +
+        '<span class="vl">' + r[1] + '</span></div>';
+    }).join('') + '</div>';
+  }
+
+  function aiTable(def){
+    return '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+      '<th>' + t('col.code') + '</th><th>' + t('cmp.col.kind') + '</th>' +
+      '<th>' + t('cmp.col.due') + '</th></tr></thead><tbody>' +
+      def.rows.map(function(r){
+        var d = parseInt(r[2], 10);
+        var cell = (d < 0)
+          ? '<span class="st danger">' + t('cmp.overdueBy',{d:Math.abs(d)}) + '</span>'
+          : '<span class="st warn">' + d + 'd</span>';
+        return '<tr><td><span class="code">' + esc(r[0]) + '</span></td>' +
+               '<td>' + t('cmp.kind.' + r[1].toLowerCase()) + '</td>' +
+               '<td>' + cell + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function aiCsv(def){
+    var head = (def.kind === 'table')
+      ? [t('col.code'), t('cmp.col.kind'), t('cmp.col.due')]
+      : [t('col.asset'), t(def.unit)];
+    var lines = [head.join(',')].concat(def.rows.map(function(r){
+      return r.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(',');
+    }));
+    var blob = new Blob(['\ufeff' + lines.join('\r\n')], { type:'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'quattroway-' + def.id + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+    toast(t('ai.csv'));
   }
 
   /* ---------------- pantallas pendientes ---------------- */

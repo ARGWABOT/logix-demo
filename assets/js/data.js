@@ -194,10 +194,46 @@ window.DATA = (function(){
     return CAMPAIGNS.filter(function(c){ return c.id===id; })[0];
   }
 
+
+  /* ---------------- habilitaciones (fase C) ----------------
+     qué desbloquea cada certificación vigente                 */
+  var UNLOCKS = {
+    t1:['height','lifting','torque','gas'],
+    t2:['height','torque'],
+    t3:['lifting','torque','gas'],
+    t4:['torque'],            /* GWO vencido: pierde altura e izado */
+    t5:['height','gas']
+  };
+
+  /* ---------------- cola sin conexión (fase C) ---------------- */
+  var QUEUE = [
+    { k:'fld.q1', min:34, kind:'out' },
+    { k:'fld.q2', min:52, kind:'warn' },
+    { k:'fld.q3', min:78, kind:'ok' }
+  ];
+
+  /* ---------------- respuestas del asistente (fase C) ----------------
+     kind: bar | rank | table                                   */
+  var AI = [
+    { id:'q1', kind:'bar', unit:'ai.unit.pct',
+      rows:[ ['TH-CAM-01',31], ['DR-INSP-02',24], ['CH-2T-02',18], ['MM-INS-04',33] ] },
+    { id:'q2', kind:'bar', unit:'ai.unit.pct',
+      rows:[ ['Northfield I',78], ['Northfield II',61], ['Harborside',24], ['Warehouse',12] ] },
+    { id:'q3', kind:'rank', unit:'ai.unit.days',
+      rows:[ ['R. Duarte',1.8], ['S. Lindqvist',1.1], ['M. Haddad',0.6] ] },
+    { id:'q4', kind:'table', unit:'ai.unit.count',
+      rows:[ ['TW-2500-04','Calibration','-6'], ['HN-FB-22','Inspection','-2'],
+             ['SRL-20-06','Inspection','9'],   ['CH-1T-05','Inspection','12'],
+             ['GD-4X-08','Calibration','16'],  ['BT-SET-07','Calibration','27'] ] }
+  ];
+
+  function unlocks(id){ return UNLOCKS[id] || []; }
+
   return {
     sites:SITES, techs:TECHS, assets:ASSETS, activity:ACTIVITY, util:UTIL,
     requests:REQUESTS, campaigns:CAMPAIGNS, bookings:BOOKINGS, days:DAYS,
     bySite:bySite, byTech:byTech, byCode:byCode, byCamp:byCamp,
+    queue:QUEUE, ai:AI, unlocks:unlocks,
     counts:counts, siteLoad:siteLoad, certs:certs, certCounts:certCounts
   };
 })();

@@ -37,9 +37,17 @@ window.Explain = (function(){
     cert: {
       p:'xp.cert', ok:true,
       steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',800,'done'] ]
-    }
+    },
 
-    /* la fase C añade aquí: offline, ai… */
+    gwo: {
+      p:'xp.gwo', ok:false,
+      steps:[ ['s1',800,'done'], ['s2',1200,'fail'], ['s3',800,'fail'], ['s4',800,'done'] ]
+    },
+
+    sync: {
+      p:'xp.sync', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1300,'done'], ['s3',900,'done'], ['s4',800,'done'] ]
+    }
   };
 
   var el = {}, timers = [], open = false;

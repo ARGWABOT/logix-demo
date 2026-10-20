@@ -355,3 +355,86 @@ table.tbl td.r{text-align:right}
 .g-legend i{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:6px}
 
 @media (max-width:860px){ .tri{grid-template-columns:1fr} }
+
+/* ===================== fase C ===================== */
+
+/* ---- habilitaciones ---- */
+.unl{display:flex; flex-wrap:wrap; gap:5px}
+.unl span{font-size:11px; font-weight:650; padding:3px 8px; border-radius:6px;
+  background:var(--accent-soft); color:var(--accent-dk); white-space:nowrap}
+.unl span.no{background:var(--danger-soft); color:var(--danger); text-decoration:line-through;
+  opacity:.75}
+.tec-av{width:32px; height:32px; border-radius:50%; flex:none; background:var(--bg);
+  border:1px solid var(--line); color:var(--body); display:grid; place-items:center;
+  font-size:11.5px; font-weight:700}
+.tec-n{display:flex; align-items:center; gap:11px}
+
+/* ---- app de campo ---- */
+.fld{display:grid; grid-template-columns:330px 1fr; gap:24px; align-items:start}
+.phone{background:var(--ink); border-radius:34px; padding:11px; box-shadow:0 24px 60px -20px rgba(11,18,32,.55)}
+.phone-s{background:#fff; border-radius:26px; overflow:hidden; min-height:560px;
+  display:flex; flex-direction:column}
+.ph-bar{background:var(--ink); color:#fff; padding:9px 16px 11px; display:flex;
+  align-items:center; justify-content:space-between; font-size:11px; font-weight:600}
+.ph-bar .ic{width:13px; height:13px}
+.ph-net{display:flex; align-items:center; gap:6px; font-size:11px; font-weight:700;
+  padding:3px 9px; border-radius:999px; background:var(--danger); color:#fff; transition:.3s}
+.ph-net.on{background:var(--ok)}
+.ph-head{padding:16px 18px 12px; border-bottom:1px solid var(--line-2)}
+.ph-head b{display:block; font-size:16px; color:var(--ink); font-weight:700; letter-spacing:-.02em}
+.ph-head span{display:block; font-size:12px; color:var(--mute)}
+.ph-scan{margin:16px 18px; border:2px dashed var(--line); border-radius:16px; padding:26px 16px;
+  text-align:center; color:var(--mute)}
+.ph-scan .ic{width:30px; height:30px; color:var(--accent); margin-bottom:8px}
+.ph-scan b{display:block; font-size:13px; color:var(--ink); font-weight:650}
+.ph-q{padding:0 18px 16px; flex:1}
+.ph-q h4{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute);
+  font-weight:700; margin:4px 0 9px}
+.ph-i{display:flex; align-items:flex-start; gap:10px; padding:9px 0;
+  border-top:1px solid var(--line-2); transition:opacity .45s, transform .45s}
+.ph-i.gone{opacity:0; transform:translateX(-14px)}
+.ph-dot{width:7px; height:7px; border-radius:50%; margin-top:6px; flex:none}
+.ph-dot.out{background:var(--out)} .ph-dot.warn{background:var(--warn)}
+.ph-dot.ok{background:var(--ok)}
+.ph-i b{display:block; font-size:12.5px; color:var(--ink); font-weight:600; line-height:1.35}
+.ph-i span{display:block; font-size:11px; color:var(--mute)}
+.ph-sign{margin:0 18px 18px; border-top:1px solid var(--line-2); padding-top:12px;
+  display:flex; align-items:center; gap:9px; font-size:11.5px; color:var(--mute)}
+.ph-sign svg.sig{width:70px; height:26px; color:var(--ink)}
+.fld-side .card{margin-bottom:14px}
+
+/* ---- asistente de IA ---- */
+.chat{display:flex; flex-direction:column; gap:14px; margin-bottom:18px}
+.bub{max-width:78%; padding:12px 16px; border-radius:16px; font-size:14px; line-height:1.5}
+.bub.me{align-self:flex-end; background:var(--ink); color:#fff; border-bottom-right-radius:5px}
+.bub.ai{align-self:flex-start; background:var(--card); border:1px solid var(--line);
+  color:var(--body); border-bottom-left-radius:5px; max-width:100%; width:100%;
+  box-shadow:var(--shadow)}
+.bub.ai b{color:var(--ink)}
+.think{display:flex; align-items:center; gap:9px; color:var(--mute); font-size:13.5px}
+.think i{width:6px; height:6px; border-radius:50%; background:var(--accent); display:block;
+  animation:blip 1s infinite}
+.think i:nth-child(2){animation-delay:.15s} .think i:nth-child(3){animation-delay:.3s}
+@keyframes blip{0%,60%,100%{opacity:.25;transform:scale(.8)} 30%{opacity:1;transform:scale(1)}}
+.ai-out{margin-top:14px; border-top:1px solid var(--line-2); padding-top:14px}
+.ai-bars{display:flex; flex-direction:column; gap:9px}
+.ai-b{display:grid; grid-template-columns:150px 1fr 52px; align-items:center; gap:12px;
+  font-size:13px}
+.ai-b .lb{color:var(--ink); font-weight:600; white-space:nowrap; overflow:hidden;
+  text-overflow:ellipsis}
+.ai-b .tr{height:9px; border-radius:99px; background:var(--line-2); overflow:hidden}
+.ai-b .tr i{display:block; height:100%; border-radius:99px; background:var(--accent);
+  width:0; transition:width .9s cubic-bezier(.2,.8,.3,1)}
+.ai-b .vl{text-align:right; font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums}
+.ai-unit{font-size:10.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--mute);
+  font-weight:700; margin-bottom:11px}
+.ai-sug{display:flex; flex-wrap:wrap; gap:8px}
+.ai-sug button{border:1px solid var(--line); background:var(--card); color:var(--body);
+  border-radius:999px; padding:8px 15px; font-size:13px; font-weight:600; text-align:left;
+  transition:.15s}
+.ai-sug button:hover{border-color:var(--accent); color:var(--accent-dk)}
+.ai-sug button:disabled{opacity:.4; cursor:default}
+.ai-ask{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--mute);
+  font-weight:700; margin:0 0 10px}
+
+@media (max-width:900px){ .fld{grid-template-columns:1fr} }
