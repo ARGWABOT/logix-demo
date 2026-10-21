@@ -179,6 +179,8 @@ window.Tour = (function(){
       else if (e.key === 'Escape') exit();
     });
 
+    vigilarIntervencion();
+
     window.addEventListener('resize', function(){ if (!el.ctl.hidden) place(); });
 
     /* el desplazamiento suave hacia el objetivo termina despues de la
@@ -188,6 +190,36 @@ window.Tour = (function(){
       if (el.ctl.hidden) return;
       clearTimeout(sc);
       sc = setTimeout(place, 90);
+    }, true);
+  }
+
+  /* ---------- el presentador manda sobre el reloj ----------
+     Si toca cualquier cosa accionable de la aplicacion mientras corre
+     el automatico, es que quiere mirar algo. El recorrido se para en
+     seco y no vuelve a avanzar hasta que el pulse Auto otra vez.      */
+  var ACCIONABLE = 'button, a[href], input, select, ' +
+    '[data-xp], [data-hint], [data-cat], [data-cmp], [data-ai], [data-csv], [data-q], ' +
+    '.att-i, .g-bar, .chip, .t-c, .ph-i, .ph-scan, .ph-sign, .kpi.tap';
+
+  function vigilarIntervencion(){
+    document.addEventListener('click', function(e){
+      if (!playing) return;                 /* ya manda el presentador */
+      if (el.ctl.hidden) return;            /* el recorrido no esta abierto */
+
+      /* los clics que dispara el propio recorrido (la etapa de accion,
+         la pregunta al asistente) no son una intervencion: los emite
+         el codigo, y esos llegan con isTrusted en falso */
+      if (!e.isTrusted) return;
+
+      /* los mandos del recorrido no cuentan: ya tienen su propio efecto.
+         El boton de la cabecera reinicia el recorrido, y reiniciar ya
+         deja el control en manual: avisar ahi seria ruido */
+      if (e.target.closest('#tr-ctl, #tr-pop, #tr-start, #btn-tour')) return;
+
+      if (!e.target.closest(ACCIONABLE)) return;
+
+      setMode(false);
+      if (window.__toast) window.__toast(t('tr.youTook'), 'i-pause');
     }, true);
   }
 

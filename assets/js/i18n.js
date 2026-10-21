@@ -551,6 +551,8 @@ window.I18N = {
     'xp.due.rd':'Renewing an inspection next week costs a phone call. Finding it expired at the foot of a tower costs the day.',
     'xp.due.n':'Any date field works the same way: insurance, licences, service life.',
 
+    'tr.youTook':'You have taken control of the presentation',
+
     'tour.t':'Guided tour',
     'tour.d':'Walk through the platform in the order it is used on site.',
   },
@@ -1101,6 +1103,8 @@ window.I18N = {
     'xp.due.rd':'Renovar una inspección la semana que viene cuesta una llamada. Descubrirla vencida al pie de una torre cuesta el día.',
     'xp.due.n':'Cualquier campo de fecha funciona igual: seguros, licencias, vida útil.',
 
+    'tr.youTook':'Has tomado el control de la presentación',
+
     'tour.t':'Recorrido guiado',
     'tour.d':'Recorre la plataforma en el orden en que se usa en obra.',
   },
@@ -1650,6 +1654,8 @@ window.I18N = {
     'xp.due.rt':'O aviso chega enquanto ainda sai barato',
     'xp.due.rd':'Renovar uma inspeção na próxima semana custa um telefonema. Descobri-la expirada ao pé de uma torre custa o dia.',
     'xp.due.n':'Qualquer campo de data funciona igual: seguros, licenças, vida útil.',
+
+    'tr.youTook':'Assumiu o controlo da apresentação',
 
     'tour.t':'Visita guiada',
     'tour.d':'Percorra a plataforma pela ordem em que é usada em obra.',

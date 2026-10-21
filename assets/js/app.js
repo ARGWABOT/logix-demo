@@ -36,9 +36,10 @@
     return '<span class="sub">'+a.cal+'d</span>';
   }
 
-  function toast(msg){
+  window.__toast = toast;
+  function toast(msg, icon){
     var el = document.getElementById('toast');
-    el.innerHTML = ic('i-check') + '<span>'+esc(msg)+'</span>';
+    el.innerHTML = ic(icon || 'i-check') + '<span>'+esc(msg)+'</span>';
     el.hidden = false;
     requestAnimationFrame(function(){ el.classList.add('in'); });
     clearTimeout(toast._t);
