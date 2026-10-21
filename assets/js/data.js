@@ -173,10 +173,14 @@ window.DATA = (function(){
       from:'Mon 24', to:'Thu 27', state:'pending', ago:12,
       items:[ {code:'DR-INSP-02', ok:true}, {code:'TH-CAM-01', ok:true},
               {code:'SRL-20-06', ok:'warn'} ] },
+    /* el elemento en choque tiene que estar comprometido en OTRA campaña:
+       marcarlo como no disponible para la campaña que lo reserva no tiene
+       sentido. El polipasto está en la de sustitución del motor de orientación */
     { id:'RQ-2290', tech:'t4', site:'nf1', campaign:'Gearbox torque campaign',
       from:'Tue 25', to:'Fri 28', state:'pending', ago:48,
-      items:[ {code:'TW-2500-01', ok:false}, {code:'BT-SET-07', ok:true},
-              {code:'TM-900-01', ok:true}, {code:'CS-BOLT-M36', ok:true} ] },
+      items:[ {code:'TW-2500-01', ok:true}, {code:'BT-SET-07', ok:true},
+              {code:'TM-900-01', ok:true}, {code:'CS-BOLT-M36', ok:true},
+              {code:'CH-1T-05', ok:false} ] },
     { id:'RQ-2289', tech:'t5', site:'hbo', campaign:'Offshore rope access',
       from:'Wed 26', to:'Wed 26', state:'pending', ago:95,
       items:[ {code:'RK-EVAC-03', ok:true}, {code:'GD-4X-08', ok:true} ] },
@@ -303,13 +307,24 @@ window.DATA = (function(){
   ];
 
   function unlocks(id){ return UNLOCKS[id] || []; }
+  function certKind(cat){ return CERT_KIND[cat] || 'calibration'; }
+
+  /* en qué campaña está comprometido un activo, y con qué ventana */
+  function campOf(code){
+    var b = BOOKINGS.filter(function(x){ return x.code === code; })[0];
+    if (!b) return null;
+    var c = byCamp(b.camp);
+    if (!c) return null;
+    return { camp:c, site:bySite(c.site),
+             from:DAYS[c.start], to:DAYS[c.start + c.len - 1] };
+  }
 
   return {
     sites:SITES, techs:TECHS, assets:ASSETS, activity:ACTIVITY, util:UTIL,
     requests:REQUESTS, campaigns:CAMPAIGNS, bookings:BOOKINGS, days:DAYS,
     bySite:bySite, byTech:byTech, byCode:byCode, byCamp:byCamp,
     queue:QUEUE, ai:AI, unlocks:unlocks,
-    kits:kits, work:WORK, prev:PREV,
+    kits:kits, work:WORK, prev:PREV, certKind:certKind, campOf:campOf,
     counts:counts, siteLoad:siteLoad, certs:certs, certCounts:certCounts
   };
 })();

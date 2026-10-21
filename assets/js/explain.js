@@ -122,8 +122,25 @@ window.Explain = (function(){
     }
   };
 
+  /* ---------- valores por defecto de las secuencias con hueco ----------
+     Varias animaciones nombran un activo concreto y se pueden lanzar
+     desde filas distintas. El elemento pulsado manda sus propios datos
+     en atributos data-v-*; esto es lo que se usa si no manda nada.   */
+  var DEF = {
+    blocked:  { name:'Hydraulic torque wrench 2,500 Nm', asset:'TW-2500-04',
+                serial:'HY-884231', control:'Calibration', days:6 },
+    due:      { asset:'SRL-20-06', days:9 },
+    conflict: { asset:'Bolt tensioner set M36', from:'Tuesday', to:'Friday',
+                campaign:'Gearbox torque campaign', site:'Northfield Wind I' },
+    book:     { campaign:'Gearbox torque campaign', site:'Northfield Wind I',
+                from:'Tue 25', to:'Fri 28' },
+    kit:      { kit:'Height and rescue kit B', n:3,
+                name:'Full-body harness', asset:'HN-FB-22', days:2 },
+    gwo:      { who:'S. Lindqvist', role:'Mechanical Tech', days:4 }
+  };
+
   var el = {}, timers = [], open = false;
-  var lastKey = null, onDone = null;
+  var lastKey = null, lastVars = null, onDone = null;
 
   function cache(){
     el.layer  = document.getElementById('xp');
@@ -149,20 +166,26 @@ window.Explain = (function(){
     return '<svg class="ic"><use href="#'+id+'"/></svg>';
   }
 
-  function run(key, done){
+  function run(key, done, vars){
     if (!el.layer) cache();
     lastKey = key;
     if (done !== undefined) onDone = done;
     var def = SEQ[key];
     if (!def) return;
 
+    /* los datos de la fila pulsada sustituyen a los de la plantilla */
+    var V = {}, k;
+    if (DEF[key]) for (k in DEF[key]) V[k] = DEF[key][k];
+    if (vars) for (k in vars) if (vars[k] !== undefined && vars[k] !== '') V[k] = vars[k];
+    lastVars = V;
+
     clearTimers();
     open = true;
     document.body.style.overflow = 'hidden';
     el.layer.hidden = false;
 
-    el.title.textContent = t(def.p + '.t');
-    el.note.textContent  = t(def.p + '.n');
+    el.title.textContent = t(def.p + '.t', V);
+    el.note.textContent  = t(def.p + '.n', V);
     el.result.className  = 'xp-result ' + (def.ok ? 'good' : 'bad');
     el.result.innerHTML  = '';
 
@@ -172,8 +195,8 @@ window.Explain = (function(){
                '<span class="xp-dot">'+(i+1)+'</span>' +
                '<span class="xp-tx">' +
                  '<em class="xp-no">'+t('ui.ofSteps',{a:i+1,b:def.steps.length})+'</em>' +
-                 '<b>'+t(def.p+'.'+s[0])+'</b>' +
-                 '<span>'+t(def.p+'.'+s[0]+'d')+'</span></span>' +
+                 '<b>'+t(def.p+'.'+s[0], V)+'</b>' +
+                 '<span>'+t(def.p+'.'+s[0]+'d', V)+'</span></span>' +
              '</li>';
     }).join('');
 
@@ -200,7 +223,7 @@ window.Explain = (function(){
 
     /* tarjeta de resultado */
     timers.push(setTimeout(function(){
-      el.result.innerHTML = '<b>'+t(def.p+'.rt')+'</b><p>'+t(def.p+'.rd')+'</p>';
+      el.result.innerHTML = '<b>'+t(def.p+'.rt', V)+'</b><p>'+t(def.p+'.rd', V)+'</p>';
       el.result.classList.add('in');
       if (onDone) try { onDone(); } catch(e){}
     }, acc + 260));
@@ -211,13 +234,13 @@ window.Explain = (function(){
     cache();
     el.close.addEventListener('click', hide);
     el.ok.addEventListener('click', hide);
-    el.replay.addEventListener('click', function(){ if (lastKey) run(lastKey); });
+    el.replay.addEventListener('click', function(){ if (lastKey) run(lastKey, undefined, lastVars); });
     el.layer.addEventListener('click', function(e){ if (e.target === el.layer) hide(); });
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape' && open) hide();
     });
   }
 
-  function replay(){ if (lastKey) run(lastKey); }
+  function replay(){ if (lastKey) run(lastKey, undefined, lastVars); }
   return { init:init, run:run, hide:hide, replay:replay, SEQ:SEQ };
 })();

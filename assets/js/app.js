@@ -8,9 +8,14 @@
   var SCREENS = [
     { id:'dashboard',   icon:'i-grid',     build:dashboard },
     { id:'inventory',   icon:'i-box',      build:inventory },
-    { id:'compliance',  icon:'i-shield',   build:compliance, badge:'3' },
-    { id:'maintenance', icon:'i-wrench',   build:maintenance, badge:'3' },
-    { id:'requests',    icon:'i-inbox',    build:requests,   badge:'7' },
+    /* los contadores salen de los datos: un número a mano se queda
+       desfasado en cuanto alguien toca el inventario */
+    { id:'compliance',  icon:'i-shield',   build:compliance,
+      badge:function(){ return D.certCounts().expired; } },
+    { id:'maintenance', icon:'i-wrench',   build:maintenance,
+      badge:function(){ return D.work.filter(function(w){ return w.state !== 'done'; }).length; } },
+    { id:'requests',    icon:'i-inbox',    build:requests,
+      badge:function(){ return D.requests.filter(function(r){ return r.state === 'pending'; }).length; } },
     { id:'campaigns',   icon:'i-calendar', build:campaigns },
     { id:'technicians', icon:'i-users',    build:technicians },
     { id:'field',       icon:'i-phone',    build:field },
@@ -23,6 +28,34 @@
   function ic(id){ return '<svg class="ic"><use href="#'+id+'"/></svg>'; }
   function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+
+  /* Los datos de la fila pulsada viajan con el botón en atributos
+     data-v-*, y la animación los usa en vez de un activo inventado.
+     Sin esto, pulsar el arnés bloqueado contaba la historia de una
+     llave dinamométrica.                                             */
+  function xpv(o){
+    var s = '';
+    for (var k in o) if (o[k] !== undefined && o[k] !== null && o[k] !== '')
+      s += ' data-v-' + k + '="' + esc(String(o[k])) + '"';
+    return s;
+  }
+
+  function varsDe(n){
+    var v = {}, d = n.dataset, k;
+    for (k in d)
+      if (k.length > 1 && k.charAt(0) === 'v' && k.charAt(1) === k.charAt(1).toUpperCase())
+        v[k.charAt(1).toLowerCase() + k.slice(2)] = d[k];
+    return v;
+  }
+
+  /* un activo fuera de plazo, descrito con sus propios datos.
+     El tipo de control va en minúscula porque cae dentro de la frase */
+  function varsActivo(a){
+    var k = t('cmp.kind.' + D.certKind(a.cat));
+    return { name:a.name, asset:a.code, serial:a.serial,
+             control:k.charAt(0).toLowerCase() + k.slice(1),
+             days:Math.abs(a.cal) };
+  }
 
   var ST_CLASS = { ok:'ok', out:'out', reserved:'idle', maintenance:'warn', blocked:'danger' };
   var ST_KEY   = { ok:'st.available', out:'st.inField', reserved:'st.reserved',
@@ -138,14 +171,14 @@
 
     blocked.forEach(function(a){
       rows.push(attRow('danger','i-shield', t('att.calExpired'),
-        t('att.calExpiredS', { asset:a.code, d:Math.abs(a.cal) }), 'blocked'));
+        t('att.calExpiredS', { asset:a.code, d:Math.abs(a.cal) }), 'blocked', varsActivo(a)));
     });
 
     var soonCal = D.assets.filter(function(a){
       return a.cal!==null && a.cal>=0 && a.cal<=16 && a.status!=='blocked'; }).slice(0,2);
     soonCal.forEach(function(a){
       rows.push(attRow('warn','i-clock', t('att.ppeDue'),
-        t('att.ppeDueS', { asset:a.code, d:a.cal }), 'due'));
+        t('att.ppeDueS', { asset:a.code, d:a.cal }), 'due', { asset:a.code, days:a.cal }));
     });
 
     var late = D.byTech('t3');
@@ -156,13 +189,14 @@
        cuenta el caso de una formación ya vencida, no de una por vencer */
     var gwo = D.techs.filter(function(x){ return x.gwoDays < 0; })[0];
     if (gwo) rows.push(attRow('danger','i-users', t('att.gwoX'),
-      t('att.gwoXS', { who:gwo.name, d:Math.abs(gwo.gwoDays) }), 'gwo'));
+      t('att.gwoXS', { who:gwo.name, d:Math.abs(gwo.gwoDays) }), 'gwo',
+      { who:gwo.name, role:gwo.role, days:Math.abs(gwo.gwoDays) }));
 
     return rows.join('');
   }
 
-  function attRow(tone, icon, title, sub, action){
-    return '<div class="att-i"'+(action ? ' data-xp="'+action+'"' : '')+'>' +
+  function attRow(tone, icon, title, sub, action, vars){
+    return '<div class="att-i"'+(action ? ' data-xp="'+action+'"'+xpv(vars||{}) : '')+'>' +
       '<div class="att-ic '+tone+'">'+ic(icon)+'</div>' +
       '<div class="att-tx"><b>'+esc(title)+'</b><span>'+esc(sub)+'</span></div>' +
       '<div class="att-go">'+ic('i-arrow')+'</div></div>';
@@ -289,7 +323,11 @@
     /* solo el kit frenado explica por qué: lo que está fuera o reservado
        no tiene nada que explicar, igual que un activo suelto */
     var btn = frenado
-      ? '<button class="btn sm danger" data-xp="kit">'+t('inv.whyKit')+'</button>'
+      ? '<button class="btn sm danger" data-xp="kit"' +
+        xpv({ kit:t(k.kit.name), n:k.parts.length,
+              name:k.weak ? k.weak.name : '', asset:k.weak ? k.weak.code : '',
+              days:(k.weak && k.weak.cal !== null) ? Math.abs(k.weak.cal) : '' }) +
+        '>'+t('inv.whyKit')+'</button>'
       : (k.status === 'ok'
           /* un kit no se entrega como un activo suelto: una firma, tres fichas */
           ? '<button class="btn sm" data-xp="kitout">'+t('inv.issueKit')+'</button>'
@@ -313,7 +351,7 @@
     var isBlocked = (a.status==='blocked');
 
     var btn = isBlocked
-      ? '<button class="btn sm danger" data-xp="blocked">'+t('act.blocked')+'</button>'
+      ? '<button class="btn sm danger" data-xp="blocked"'+xpv(varsActivo(a))+'>'+t('act.blocked')+'</button>'
       : (canIssue
           ? '<button class="btn sm" data-xp="checkout">'+t('inv.issue')+'</button>'
           /* lo que está fuera se devuelve: el verbo que cierra el ciclo */
@@ -537,6 +575,11 @@
       '<div class="reqs">' + pend.map(reqCard).join('') + '</div>';
   }
 
+  /* por debajo de una hora se cuenta en minutos: «0 h» no lo dice nadie */
+  function hace(min){
+    return (min < 60) ? t('req.agoMin', { m:min }) : t('req.ago', { h:Math.round(min/60) });
+  }
+
   /* cada tipo de solicitud tiene su propio formulario y su propia
      cadena de aprobación; la tarjeta cambia según el tipo */
   var REQ_KIND = { equipment:'i-box', purchase:'i-cart', transfer:'i-arrow' };
@@ -565,7 +608,7 @@
         : '') +
       (r.carrier ? '<span>' + t('req.carrier') + ' <b>' + t(r.carrier) + '</b></span>' : '') +
       '<span>' + t('req.items',{n:r.items.length}) + '</span>' +
-      '<span>' + t('req.ago',{h:Math.round(r.ago/60)}) + '</span>';
+      '<span>' + hace(r.ago) + '</span>';
 
     return '<div class="req">' +
       '<div class="req-h">' +
@@ -593,12 +636,31 @@
     if (kind === 'transfer')
       return '<button class="btn sm" data-xp="move">' + t('req.approveMove') + '</button>';
 
-    var choca = r.items.some(function(it){ return it.ok === false; });
+    var malo = r.items.filter(function(it){ return it.ok === false; })[0];
 
     return '<button class="btn sm ghost" data-xp="adjust">' + t('req.adjust') + '</button>' +
-      (choca
-        ? '<button class="btn sm danger" data-xp="conflict">' + t('req.solve') + '</button>'
-        : '<button class="btn sm" data-xp="approve">' + t('req.approve') + '</button>');
+      (malo
+        /* el choque que se explica es el de ESTE elemento, no uno genérico */
+        ? '<button class="btn sm danger" data-xp="conflict"' +
+          xpv(varsChoque(malo.code, r.from, r.to)) + '>' + t('req.solve') + '</button>'
+        : '<button class="btn sm" data-xp="approve"' +
+          xpv({ who:(D.byTech(r.tech)||{}).name, ago:hace(r.ago) }) + '>' +
+          t('req.approve') + '</button>');
+  }
+
+  /* una campaña descrita con sus propios datos */
+  function varsCamp(c){
+    if (!c) return {};
+    return { campaign:c.name, site:(D.bySite(c.site)||{}).name,
+             from:D.days[c.start], to:D.days[c.start + c.len - 1] };
+  }
+
+  /* un activo que ya está comprometido, con la campaña que lo retiene */
+  function varsChoque(code, from, to){
+    var a = D.byCode(code), c = D.campOf(code);
+    return { asset:a ? a.name : code,
+             from:from || (c ? c.from : ''), to:to || (c ? c.to : ''),
+             campaign:c ? c.camp.name : '', site:c ? c.site.name : '' };
   }
 
   /* ---------------- pantalla: campañas ---------------- */
@@ -626,8 +688,12 @@
           '<span>' + esc(a.code) + '</span></div>' +
         '<div class="g-cells"><div class="g-grid">' + cells + '</div>' +
           /* solo la barra en choque cuenta el choque; las demás cuentan
-             qué es una reserva y qué retiene */
-          '<div class="g-bar' + clash + '" data-xp="' + (clash ? 'conflict' : 'book') + '" ' +
+             qué es una reserva y qué retiene. Cada barra habla de SU
+             campaña y de SU activo, no de una inventada */
+          '<div class="g-bar' + clash + '" data-xp="' + (clash ? 'conflict' : 'book') + '"' +
+          xpv({ asset:a.name, campaign:camp.name,
+                site:(D.bySite(camp.site)||{}).name,
+                from:D.days[camp.start], to:D.days[camp.start + camp.len - 1] }) + ' ' +
           'style="left:' + left.toFixed(2) + '%;width:calc(' + width.toFixed(2) + '% - 4px);' +
           'background:' + camp.color + '">' + esc(camp.name) + '</div>' +
         '</div></div>';
@@ -645,7 +711,8 @@
         head + rows +
       '</div></div><div class="g-legend">' + legend + '</div></div>' +
       '<div class="btn-row" style="margin-top:16px">' +
-        '<button class="btn" data-xp="book">' + t('cam.book') + '</button></div>';
+        '<button class="btn" data-xp="book"' + xpv(varsCamp(D.campaigns[0])) + '>' +
+        t('cam.book') + '</button></div>';
   }
 
 
@@ -684,7 +751,9 @@
       '<td>' + gwo + '</td>' +
       '<td><div class="unl">' + unl + '</div></td>' +
       '<td class="r">' + (expired
-        ? '<button class="btn sm danger" data-xp="gwo">' + t('tec.check') + '</button>'
+        ? '<button class="btn sm danger" data-xp="gwo"' +
+          xpv({ who:x.name, role:x.role, days:Math.abs(x.gwoDays) }) + '>' +
+          t('tec.check') + '</button>'
         : '') + '</td></tr>';
   }
 
@@ -905,10 +974,11 @@
   function buildNav(){
     var nav = document.getElementById('nav');
     nav.innerHTML = SCREENS.map(function(s, i){
+      var n = s.badge ? s.badge() : 0;
       return (i===2 || s.id==='platform' ? '<div class="sep"></div>' : '') +
         '<a href="#/'+s.id+'" data-s="'+s.id+'">'+ic(s.icon) +
         '<span data-i18n="nav.'+s.id+'">'+t('nav.'+s.id)+'</span>' +
-        (s.badge ? '<span class="badge">'+s.badge+'</span>' : '') + '</a>';
+        (n ? '<span class="badge">'+n+'</span>' : '') + '</a>';
     }).join('');
   }
 
@@ -974,7 +1044,7 @@
       if (n){
         e.preventDefault();
         hideHint();
-        Explain.run(n.dataset.xp);
+        Explain.run(n.dataset.xp, undefined, varsDe(n));
         return;
       }
 
