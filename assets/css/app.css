@@ -636,3 +636,19 @@ table.tbl td.r{text-align:right}
 @media (max-width:1240px){
   #pl-a, #pl-b{grid-template-columns:1fr 1fr}
 }
+
+/* ============================================================
+   Globo de contexto · lo que haría un control no conectado
+   ============================================================ */
+.hintbox{position:fixed; z-index:70; width:300px; max-width:calc(100vw - 20px);
+  background:var(--ink); color:#D7E2EF; border-radius:13px; padding:14px 16px 15px;
+  box-shadow:0 20px 44px -18px rgba(11,18,32,.6); font-size:13.5px; line-height:1.5;
+  opacity:0; transform:translateY(-5px); transition:opacity .18s ease, transform .18s ease}
+.hintbox.in{opacity:1; transform:none}
+.hintbox .hint-k{display:block; font-size:10px; font-weight:800; letter-spacing:.13em;
+  text-transform:uppercase; color:#5EEAD4; margin-bottom:6px}
+.hintbox p{margin:0}
+
+/* los controles que explican en vez de actuar siguen invitando a pulsar */
+[data-hint]{cursor:pointer}
+.search[data-hint] input{cursor:pointer}

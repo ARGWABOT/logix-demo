@@ -76,7 +76,7 @@ window.DATA = (function(){
      manda el elemento peor parado: si un arnés está bloqueado, el kit
      entero deja de poder entregarse.                                   */
   var KITS = [
-    { code:'KT-TRQ-M36', name:'kit.torque', items:['TW-2500-01','TM-900-01','CS-BOLT-M36'],
+    { code:'KT-TRQ-M36', name:'kit.torque', items:['TW-1200-02','TM-900-01','CS-BOLT-M36'],
       site:'whs' },
     { code:'KT-HGT-B',   name:'kit.height', items:['HN-FB-22','SRL-20-06','RK-EVAC-03'],
       site:'whs' },

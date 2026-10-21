@@ -83,6 +83,42 @@ window.Explain = (function(){
     remind: {
       p:'xp.remind', ok:true,
       steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',1200,'done'], ['s4',900,'done'] ]
+    },
+
+    /* ajustar una solicitud en vez de rechazarla */
+    adjust: {
+      p:'xp.adjust', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1200,'done'], ['s3',1000,'done'], ['s4',800,'done'] ]
+    },
+
+    /* aprobar una compra */
+    buy: {
+      p:'xp.buy', ok:true,
+      steps:[ ['s1',900,'done'], ['s2',1100,'done'], ['s3',1000,'done'], ['s4',900,'done'] ]
+    },
+
+    /* aprobar un traslado entre sedes */
+    move: {
+      p:'xp.move', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',1100,'done'], ['s4',900,'done'] ]
+    },
+
+    /* reservar material para una campaña: el camino que sí sale bien */
+    book: {
+      p:'xp.book', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1200,'done'], ['s3',1000,'done'], ['s4',900,'done'] ]
+    },
+
+    /* un control que aún no ha vencido: avisa, no bloquea */
+    due: {
+      p:'xp.due', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',900,'done'], ['s4',1100,'done'] ]
+    },
+
+    /* entregar un kit completo */
+    kitout: {
+      p:'xp.kitout', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1200,'done'], ['s3',900,'done'], ['s4',1000,'done'] ]
     }
   };
 

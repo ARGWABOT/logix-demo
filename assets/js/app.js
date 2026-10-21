@@ -48,6 +48,46 @@
     }, 2600);
   }
 
+  /* ---------------- globo de contexto ----------------
+     Para los controles que en la demo no están conectados. En vez de no
+     hacer nada, o peor, de abrir una animación que no les corresponde,
+     explican qué harían en la plataforma real.                        */
+  function hintBox(){
+    var el = document.getElementById('hint');
+    if (!el){
+      el = document.createElement('div');
+      el.id = 'hint';
+      el.className = 'hintbox';
+      el.hidden = true;
+      document.body.appendChild(el);
+    }
+    return el;
+  }
+
+  function showHint(node, key){
+    var el = hintBox();
+    el.innerHTML = '<span class="hint-k">' + t('ui.whatThis') + '</span>' +
+                   '<p>' + esc(t(key)) + '</p>';
+    el.hidden = false;
+
+    var r = node.getBoundingClientRect();
+    var w = el.offsetWidth, h = el.offsetHeight, m = 10;
+    var x = Math.max(m, Math.min(r.left, innerWidth - w - m));
+    var y = r.bottom + m;
+    if (y + h > innerHeight - m) y = Math.max(m, r.top - h - m);
+    el.style.left = x + 'px';
+    el.style.top  = y + 'px';
+    requestAnimationFrame(function(){ el.classList.add('in'); });
+  }
+
+  function hideHint(){
+    var el = document.getElementById('hint');
+    if (!el || el.hidden) return;
+    el.classList.remove('in');
+    clearTimeout(hideHint._t);
+    hideHint._t = setTimeout(function(){ el.hidden = true; }, 180);
+  }
+
   /* ---------------- pantalla: panel ---------------- */
   function dashboard(view){
     var c = D.counts();
@@ -90,6 +130,8 @@
       '<div class="dlt">'+sub+'</div></div>';
   }
 
+  /* cada aviso abre la explicación de lo que la plataforma hace con él:
+     un aviso que no lleva a ninguna parte es ruido */
   function attention(blocked){
     var rows = [];
 
@@ -102,16 +144,18 @@
       return a.cal!==null && a.cal>=0 && a.cal<=16 && a.status!=='blocked'; }).slice(0,2);
     soonCal.forEach(function(a){
       rows.push(attRow('warn','i-clock', t('att.ppeDue'),
-        t('att.ppeDueS', { asset:a.code, d:a.cal })));
+        t('att.ppeDueS', { asset:a.code, d:a.cal }), 'due'));
     });
 
     var late = D.byTech('t3');
     rows.push(attRow('out','i-arrow', t('att.overdue'),
-      t('att.overdueS', { asset:'CH-1T-05', who:late.name, d:2 })));
+      t('att.overdueS', { asset:'CH-1T-05', who:late.name, d:2 }), 'remind'));
 
-    var gwo = D.techs.filter(function(x){ return x.gwoDays>0 && x.gwoDays<30; })[0];
-    if (gwo) rows.push(attRow('warn','i-users', t('att.gwo'),
-      t('att.gwoS', { who:gwo.name, d:gwo.gwoDays })));
+    /* el aviso tiene que ser de quien habla la animación: la de GWO
+       cuenta el caso de una formación ya vencida, no de una por vencer */
+    var gwo = D.techs.filter(function(x){ return x.gwoDays < 0; })[0];
+    if (gwo) rows.push(attRow('danger','i-users', t('att.gwoX'),
+      t('att.gwoXS', { who:gwo.name, d:Math.abs(gwo.gwoDays) }), 'gwo'));
 
     return rows.join('');
   }
@@ -246,7 +290,8 @@
     var btn = frenado
       ? '<button class="btn sm danger" data-xp="kit">'+t('inv.whyKit')+'</button>'
       : (k.status === 'ok'
-          ? '<button class="btn sm" data-xp="checkout">'+t('inv.issueKit')+'</button>'
+          /* un kit no se entrega como un activo suelto: una firma, tres fichas */
+          ? '<button class="btn sm" data-xp="kitout">'+t('inv.issueKit')+'</button>'
           : '');
 
     return '<tr>' +
@@ -533,10 +578,26 @@
       '<div class="req-meta">' + meta + '</div>' +
       (r.note ? '<p class="req-note">' + t(r.note) + '</p>' : '') +
       '<div class="req-items">' + items + '</div>' +
-      '<div class="req-f"><span></span><div class="btn-row">' +
-        '<button class="btn sm ghost" data-xp="conflict">' + t('req.adjust') + '</button>' +
-        '<button class="btn sm" data-xp="approve">' + t('req.approve') + '</button>' +
+      '<div class="req-f"><span></span><div class="btn-row">' + reqBtns(r, kind) +
       '</div></div></div>';
+  }
+
+  /* cada botón tiene que disparar lo que dice que hace:
+     - una compra se aprueba como compra, no como reserva de material
+     - una solicitud con un choque no se aprueba: primero se resuelve */
+  function reqBtns(r, kind){
+    if (kind === 'purchase')
+      return '<button class="btn sm" data-xp="buy">' + t('req.approveBuy') + '</button>';
+
+    if (kind === 'transfer')
+      return '<button class="btn sm" data-xp="move">' + t('req.approveMove') + '</button>';
+
+    var choca = r.items.some(function(it){ return it.ok === false; });
+
+    return '<button class="btn sm ghost" data-xp="adjust">' + t('req.adjust') + '</button>' +
+      (choca
+        ? '<button class="btn sm danger" data-xp="conflict">' + t('req.solve') + '</button>'
+        : '<button class="btn sm" data-xp="approve">' + t('req.approve') + '</button>');
   }
 
   /* ---------------- pantalla: campañas ---------------- */
@@ -563,7 +624,9 @@
         '<div class="g-lbl"><b>' + esc(a.name) + '</b>' +
           '<span>' + esc(a.code) + '</span></div>' +
         '<div class="g-cells"><div class="g-grid">' + cells + '</div>' +
-          '<div class="g-bar' + clash + '" data-xp="conflict" ' +
+          /* solo la barra en choque cuenta el choque; las demás cuentan
+             qué es una reserva y qué retiene */
+          '<div class="g-bar' + clash + '" data-xp="' + (clash ? 'conflict' : 'book') + '" ' +
           'style="left:' + left.toFixed(2) + '%;width:calc(' + width.toFixed(2) + '% - 4px);' +
           'background:' + camp.color + '">' + esc(camp.name) + '</div>' +
         '</div></div>';
@@ -581,7 +644,7 @@
         head + rows +
       '</div></div><div class="g-legend">' + legend + '</div></div>' +
       '<div class="btn-row" style="margin-top:16px">' +
-        '<button class="btn" data-xp="conflict">' + t('cam.book') + '</button></div>';
+        '<button class="btn" data-xp="book">' + t('cam.book') + '</button></div>';
   }
 
 
@@ -631,7 +694,7 @@
     var q = D.queue;
 
     var items = q.map(function(x, i){
-      return '<div class="ph-i" data-q="' + i + '">' +
+      return '<div class="ph-i" data-q="' + i + '" data-hint="hint.queue">' +
         '<span class="ph-dot ' + x.kind + '"></span>' +
         '<span><b>' + t(x.k) + '</b><span>' + x.min + ' min</span></span></div>';
     }).join('');
@@ -645,7 +708,7 @@
             '<span id="ph-net-t">' + t('fld.offline') + '</span></span></div>' +
           '<div class="ph-head"><b>Quattro Way</b>' +
             '<span id="ph-sub">' + t('fld.queued',{n:q.length}) + '</span></div>' +
-          '<div class="ph-scan">' + ic('i-scan') +
+          '<div class="ph-scan" data-hint="hint.scan">' + ic('i-scan') +
             '<b>' + t('fld.scan') + '</b></div>' +
           '<div class="ph-q"><h4>' + t('fld.lastScan') + '</h4>' +
             '<div id="ph-list">' + items + '</div></div>' +
@@ -901,13 +964,28 @@
       b.addEventListener('click', function(){ setLang(b.dataset.lang); });
     });
 
-    /* delegación: cualquier elemento con data-xp lanza una explicación */
+    /* delegación: data-xp lanza la animación que le corresponde,
+       data-hint explica qué haría un control que aquí no está conectado */
     document.addEventListener('click', function(e){
+      if (e.target.closest('#hint')) return;
+
       var n = e.target.closest('[data-xp]');
-      if (!n) return;
-      e.preventDefault();
-      Explain.run(n.dataset.xp);
+      if (n){
+        e.preventDefault();
+        hideHint();
+        Explain.run(n.dataset.xp);
+        return;
+      }
+
+      var h = e.target.closest('[data-hint]');
+      hideHint();
+      if (h){ e.preventDefault(); showHint(h, h.dataset.hint); }
     });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') hideHint();
+    });
+    window.addEventListener('resize', hideHint);
 
     document.getElementById('btn-tour').addEventListener('click', function(){
       Tour.start();
