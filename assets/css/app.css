@@ -483,10 +483,14 @@ table.tbl td.r{text-align:right}
 .tr-ctl button:hover{color:#fff;background:rgba(255,255,255,.1)}
 .tr-ctl .ic{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;
   stroke-linecap:round;stroke-linejoin:round}
-.tr-ctl .pp{background:var(--accent);color:#fff;font-size:13px;font-weight:700;
-  padding:7px 17px;line-height:1.4;min-width:92px}
-.tr-ctl .pp:hover{background:#0FA89A;color:#fff}
-.tr-ctl .pp.paused{background:#fff;color:var(--ink)}
+/* conmutador manual / automatico, mismo patron que el de idioma */
+.tr-mode{display:inline-flex;align-items:center;gap:2px;background:rgba(255,255,255,.09);
+  border-radius:999px;padding:3px}
+.tr-mode button{font-size:12px;font-weight:700;letter-spacing:.03em;padding:5px 13px;
+  border-radius:999px;color:#9FB2C8;line-height:1.4}
+.tr-mode button:hover{color:#fff;background:transparent}
+.tr-mode button.on{background:#fff;color:var(--ink)}
+.tr-mode button.on.auto{background:var(--accent);color:#fff}
 .tr-sep{width:1px;height:20px;background:rgba(255,255,255,.14);margin:0 4px}
 .tr-cnt{font-size:12px;font-weight:700;color:#9FB2C8;padding:0 6px;white-space:nowrap;
   font-variant-numeric:tabular-nums}
@@ -513,3 +517,29 @@ table.tbl td.r{text-align:right}
   .tr-pop.mid h3{font-size:21px} .tr-ctl{bottom:14px}
   .tr-ctl .x{display:none}
 }
+
+/* ---- etapa de accion dentro del globo del recorrido ---- */
+.tr-cta{margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
+.tr-cta .wait{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:650;
+  color:var(--warm);margin-bottom:10px}
+.tr-cta .wait i{width:7px;height:7px;border-radius:50%;background:var(--warm);flex:none;
+  animation:beat 1.1s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.72)}}
+.tr-cta button{width:100%;border:0;border-radius:11px;padding:12px 16px;font-size:15px;
+  font-weight:700;background:var(--accent);color:#fff;display:flex;align-items:center;
+  justify-content:center;gap:9px;transition:.15s}
+.tr-cta button:hover{background:var(--accent-dk)}
+.tr-cta button.done{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.tr-cta button.done:hover{border-color:var(--mute)}
+.tr-cta .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.3;
+  stroke-linecap:round;stroke-linejoin:round}
+
+/* el anillo late mas fuerte cuando espera un clic */
+.tr-ring.wait{border-color:var(--warm)}
+.tr-ring.wait::after{border-color:var(--warm);animation-duration:1.1s}
+
+/* numeracion dentro de la ventana de animacion */
+.xp-no{display:block;font-style:normal;font-size:10px;font-weight:800;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--mute);margin-bottom:2px}
+.xp-foot{gap:10px}
+.xp-foot .btn{white-space:nowrap}

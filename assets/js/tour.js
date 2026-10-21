@@ -81,12 +81,16 @@ window.Tour = (function(){
       '<div class="tr-pop" id="tr-pop" hidden>' +
         '<span class="tr-step" id="tr-step"></span>' +
         '<h3 id="tr-t"></h3><p id="tr-d"></p>' +
+        '<div class="tr-cta" id="tr-cta" hidden></div>' +
         '<div class="tr-bar"><i id="tr-fill"></i></div>' +
       '</div>' +
       '<div class="tr-ctl" id="tr-ctl" hidden>' +
         '<button type="button" id="tr-prev" title="">' +
           '<svg class="ic" viewBox="0 0 24 24"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button>' +
-        '<button type="button" class="pp" id="tr-pp"></button>' +
+        '<span class="tr-mode">' +
+          '<button type="button" id="tr-man"></button>' +
+          '<button type="button" id="tr-aut"></button>' +
+        '</span>' +
         '<button type="button" id="tr-next" title="">' +
           '<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>' +
         '<span class="tr-sep"></span>' +
@@ -113,21 +117,24 @@ window.Tour = (function(){
     el.d    = document.getElementById('tr-d');
     el.stp  = document.getElementById('tr-step');
     el.fill = document.getElementById('tr-fill');
+    el.cta  = document.getElementById('tr-cta');
     el.ctl  = document.getElementById('tr-ctl');
-    el.pp   = document.getElementById('tr-pp');
+    el.man  = document.getElementById('tr-man');
+    el.aut  = document.getElementById('tr-aut');
     el.cnt  = document.getElementById('tr-cnt');
     el.start= document.getElementById('tr-start');
 
     document.getElementById('tr-prev').addEventListener('click', prev);
     document.getElementById('tr-next').addEventListener('click', next);
     document.getElementById('tr-exit').addEventListener('click', exit);
-    el.pp.addEventListener('click', toggle);
+    el.man.addEventListener('click', function(){ setMode(false); });
+    el.aut.addEventListener('click', function(){ setMode(true); });
     document.getElementById('tr-go').addEventListener('click', function(){ el.start.hidden = true; start(); });
     document.getElementById('tr-skip').addEventListener('click', function(){ el.start.hidden = true; });
 
     document.addEventListener('keydown', function(e){
       if (el.ctl.hidden) return;
-      if (e.key === ' '){ e.preventDefault(); toggle(); }
+      if (e.key === ' '){ e.preventDefault(); setMode(!playing); }
       else if (e.key === 'ArrowRight') next();
       else if (e.key === 'ArrowLeft') prev();
       else if (e.key === 'Escape') exit();
@@ -143,7 +150,7 @@ window.Tour = (function(){
     document.getElementById('tr-st-d').textContent = t('tr.s1.d');
     document.getElementById('tr-go').textContent   = t('tr.play');
     document.getElementById('tr-skip').textContent = t('tr.explore');
-    document.getElementById('tr-hint').textContent = t('tr.hint');
+    document.getElementById('tr-hint').textContent = t('tr.hintManual');
     el.start.hidden = false;
   }
 
@@ -208,6 +215,10 @@ window.Tour = (function(){
     el.d.textContent   = t('tr.' + s.k + '.d');
     el.cnt.textContent = t('tr.of', { a:i+1, b:STEPS.length });
 
+    el.cta.hidden = !s.xp;
+    el.cta.innerHTML = '';
+    el.ring.classList.remove('wait');
+
     var needsNav = (location.hash.replace('#/','') !== s.screen);
     if (needsNav) location.hash = '#/' + s.screen;
 
@@ -223,12 +234,10 @@ window.Tour = (function(){
         el.pop.classList.add('in');
         if (s.act) try { s.act(); } catch(e){}
         if (s.xp){
-          st(function(){
-            el.dim.hidden = true;          /* no apilar dos fondos oscuros */
-            el.ring.hidden = true;
-            el.pop.classList.remove('in');
-            Explain.run(s.xp);
-          }, Math.max(600, s.ms - 900));
+          paintCta(s, false);
+          el.ring.classList.add('wait');
+          /* en automatico se dispara sola; en manual espera al presentador */
+          if (playing) st(function(){ playXp(s); }, Math.max(900, s.ms - 900));
         }
       }, needsNav ? 240 : 60);
     }, needsNav ? 60 : 0);
@@ -236,13 +245,51 @@ window.Tour = (function(){
     runBar(s.xp ? (s.ms + (s.xpMs || 0)) : s.ms);
   }
 
+  /* ---------- etapa de accion ---------- */
+  function paintCta(s, played){
+    el.cta.hidden = false;
+    el.cta.innerHTML =
+      (played || playing ? '' :
+        '<span class="wait"><i></i>' + t('tr.waiting') + '</span>') +
+      '<button type="button">' +
+        '<svg class="ic" viewBox="0 0 24 24">' +
+          (played ? '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 3v5h5"/>'
+                  : '<path d="M6 4l13 8-13 8V4z" fill="currentColor" stroke="none"/>') +
+        '</svg>' +
+        (played ? t('tr.again') : t('tr.show')) +
+      '</button>';
+    if (played) el.cta.querySelector('button').classList.add('done');
+    el.cta.querySelector('button').addEventListener('click', function(){ playXp(s); });
+  }
+
+  function playXp(s){
+    el.dim.hidden = true;             /* no apilar dos fondos oscuros */
+    el.ring.hidden = true;
+    el.pop.classList.remove('in');
+    Explain.run(s.xp, function(){
+      /* al acabar la animacion el globo vuelve, ya con la opcion de repetir */
+      if (STEPS[i] !== s) return;     /* el presentador ya cambio de paso */
+      paintCta(s, true);
+      el.ring.classList.remove('wait');
+      if (!playing){
+        el.pop.classList.add('in');
+        var node = s.sel ? document.querySelector(s.sel) : null;
+        if (node){ el.ring.hidden = false; } else { el.dim.hidden = false; }
+      }
+    });
+  }
+
   function runBar(ms){
     el.fill.style.transition = 'none';
-    el.fill.style.width = '0%';
-    void el.fill.offsetWidth;
     if (playing){
+      el.fill.style.width = '0%';
+      void el.fill.offsetWidth;
       el.fill.style.transition = 'width ' + ms + 'ms linear';
       el.fill.style.width = '100%';
+    } else {
+      /* en manual no hay cuenta atras: la barra dice por donde vamos */
+      el.fill.style.transition = 'width .3s ease';
+      el.fill.style.width = ((i + 1) / STEPS.length * 100).toFixed(1) + '%';
     }
   }
 
@@ -271,27 +318,38 @@ window.Tour = (function(){
   function next(){ if (i >= STEPS.length - 1) return finish(); goto(i + 1); }
   function prev(){ goto(i - 1); }
 
-  function toggle(){
-    playing = !playing;
-    el.pp.textContent = playing ? t('tr.pause') : t('tr.resume');
-    el.pp.classList.toggle('paused', !playing);
+  /* false = manual (por defecto), true = automatico */
+  function setMode(auto){
+    playing = !!auto;
+    paintMode();
     if (playing){
-      render(); schedule();
+      schedule();
+      runBar(stepMs());
     } else {
       clearTimeout(timer);
-      clearStep();
-      var w = getComputedStyle(el.fill).width;
-      el.fill.style.transition = 'none';
-      el.fill.style.width = w;
+      runBar(0);                 /* la barra pasa a marcar avance global */
     }
+  }
+
+  function paintMode(){
+    el.man.textContent = t('tr.manual');
+    el.aut.textContent = t('tr.auto');
+    el.man.classList.toggle('on', !playing);
+    el.aut.classList.toggle('on', playing);
+    el.aut.classList.toggle('auto', playing);
+  }
+
+  function stepMs(){
+    var s = STEPS[i];
+    return s.ms + (s.xp ? (s.xpMs || 0) : 0);
   }
 
   function start(){
     build();
-    i = 0; playing = true;
-    el.pp.textContent = t('tr.pause');
-    el.pp.classList.remove('paused');
-    render(); schedule();
+    i = 0;
+    playing = false;            /* manda el presentador, no el reloj */
+    paintMode();
+    render();
   }
 
   function finish(){

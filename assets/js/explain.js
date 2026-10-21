@@ -51,6 +51,7 @@ window.Explain = (function(){
   };
 
   var el = {}, timers = [], open = false;
+  var lastKey = null, onDone = null;
 
   function cache(){
     el.layer  = document.getElementById('xp');
@@ -60,6 +61,7 @@ window.Explain = (function(){
     el.note   = document.getElementById('xp-note');
     el.close  = document.getElementById('xp-close');
     el.ok     = document.getElementById('xp-ok');
+    el.replay = document.getElementById('xp-replay');
   }
 
   function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
@@ -75,8 +77,10 @@ window.Explain = (function(){
     return '<svg class="ic"><use href="#'+id+'"/></svg>';
   }
 
-  function run(key){
+  function run(key, done){
     if (!el.layer) cache();
+    lastKey = key;
+    if (done !== undefined) onDone = done;
     var def = SEQ[key];
     if (!def) return;
 
@@ -94,8 +98,10 @@ window.Explain = (function(){
     el.steps.innerHTML = def.steps.map(function(s, i){
       return '<li data-i="'+i+'">' +
                '<span class="xp-dot">'+(i+1)+'</span>' +
-               '<span class="xp-tx"><b>'+t(def.p+'.'+s[0])+'</b>' +
-               '<span>'+t(def.p+'.'+s[0]+'d')+'</span></span>' +
+               '<span class="xp-tx">' +
+                 '<em class="xp-no">'+t('ui.ofSteps',{a:i+1,b:def.steps.length})+'</em>' +
+                 '<b>'+t(def.p+'.'+s[0])+'</b>' +
+                 '<span>'+t(def.p+'.'+s[0]+'d')+'</span></span>' +
              '</li>';
     }).join('');
 
@@ -124,6 +130,7 @@ window.Explain = (function(){
     timers.push(setTimeout(function(){
       el.result.innerHTML = '<b>'+t(def.p+'.rt')+'</b><p>'+t(def.p+'.rd')+'</p>';
       el.result.classList.add('in');
+      if (onDone) try { onDone(); } catch(e){}
     }, acc + 260));
   }
 
@@ -132,11 +139,13 @@ window.Explain = (function(){
     cache();
     el.close.addEventListener('click', hide);
     el.ok.addEventListener('click', hide);
+    el.replay.addEventListener('click', function(){ if (lastKey) run(lastKey); });
     el.layer.addEventListener('click', function(e){ if (e.target === el.layer) hide(); });
     document.addEventListener('keydown', function(e){
       if (e.key === 'Escape' && open) hide();
     });
   }
 
-  return { init:init, run:run, hide:hide, SEQ:SEQ };
+  function replay(){ if (lastKey) run(lastKey); }
+  return { init:init, run:run, hide:hide, replay:replay, SEQ:SEQ };
 })();
