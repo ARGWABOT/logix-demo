@@ -444,9 +444,12 @@ table.tbl td.r{text-align:right}
 .tr-dim{position:fixed;inset:0;z-index:80;background:rgba(11,18,32,.52);
   backdrop-filter:blur(1.5px);animation:fade .25s ease;pointer-events:none}
 
+/* El anillo es a la vez el foco y el oscurecido: su box-shadow de 9999px
+   pinta toda la pantalla salvo su propia caja, que queda limpia. Por eso
+   NO debe coincidir nunca con .tr-dim, o el interior volveria a taparse. */
 .tr-ring{position:fixed;z-index:82;border-radius:13px;pointer-events:none;
-  border:2.5px solid var(--accent);
-  box-shadow:0 0 0 5px rgba(13,148,136,.26), 0 0 0 9999px rgba(11,18,32,.52);
+  border:2.5px solid var(--accent); background:transparent;
+  box-shadow:0 0 0 4px rgba(13,148,136,.3), 0 0 0 9999px rgba(11,18,32,.62);
   transition:left .42s cubic-bezier(.3,.9,.3,1), top .42s cubic-bezier(.3,.9,.3,1),
              width .42s cubic-bezier(.3,.9,.3,1), height .42s cubic-bezier(.3,.9,.3,1)}
 .tr-ring::after{content:"";position:absolute;inset:-2.5px;border-radius:13px;

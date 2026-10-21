@@ -22,41 +22,41 @@ window.Tour = (function(){
   }
 
   var STEPS = [
-    { k:'s1',  screen:'dashboard',   sel:null,                     ms:5200 },
-    { k:'s2',  screen:'dashboard',   sel:'.row.k4',                ms:6200 },
-    { k:'s3',  screen:'dashboard',   sel:'.kpi.alarm',             ms:5600 },
-    { k:'s4',  screen:'dashboard',   sel:'.att',                   ms:6400 },
-    { k:'s5',  screen:'dashboard',   sel:'.row.split > .card:last-child', ms:6000 },
+    { k:'s1',  screen:'dashboard',   sel:null,                     ms:9700 },
+    { k:'s2',  screen:'dashboard',   sel:'.row.k4',                ms:10700 },
+    { k:'s3',  screen:'dashboard',   sel:'.kpi.alarm',             ms:10100 },
+    { k:'s4',  screen:'dashboard',   sel:'.att',                   ms:10900 },
+    { k:'s5',  screen:'dashboard',   sel:'.row.split > .card:last-child', ms:10500 },
 
-    { k:'s6',  screen:'inventory',   sel:'.filters',               ms:6200 },
-    { k:'s7',  screen:'inventory',   sel:'.tbl tbody tr:nth-child(2)', ms:6400 },
-    { k:'s8',  screen:'inventory',   sel:'[data-xp="blocked"]',    ms:3200, xp:'blocked', xpMs:6400 },
+    { k:'s6',  screen:'inventory',   sel:'.filters',               ms:10700 },
+    { k:'s7',  screen:'inventory',   sel:'.tbl tbody tr:nth-child(2)', ms:10900 },
+    { k:'s8',  screen:'inventory',   sel:'[data-xp="blocked"]',    ms:7700, xp:'blocked', xpMs:6400 },
 
-    { k:'s9',  screen:'compliance',  sel:'.tri',                   ms:6200 },
-    { k:'s10', screen:'compliance',  sel:'.tbl tbody tr:nth-child(1)', ms:6400 },
+    { k:'s9',  screen:'compliance',  sel:'.tri',                   ms:10700 },
+    { k:'s10', screen:'compliance',  sel:'.tbl tbody tr:nth-child(1)', ms:10900 },
 
-    { k:'s11', screen:'requests',    sel:'.req:nth-child(1)',      ms:6200 },
-    { k:'s12', screen:'requests',    sel:'.req:nth-child(2) .req-i.bad', ms:6400 },
-    { k:'s13', screen:'requests',    sel:'.req:nth-child(1) [data-xp="approve"]', ms:2600, xp:'approve', xpMs:7200 },
+    { k:'s11', screen:'requests',    sel:'.req:nth-child(1)',      ms:10700 },
+    { k:'s12', screen:'requests',    sel:'.req:nth-child(2) .req-i.bad', ms:10900 },
+    { k:'s13', screen:'requests',    sel:'.req:nth-child(1) [data-xp="approve"]', ms:7100, xp:'approve', xpMs:7200 },
 
-    { k:'s14', screen:'campaigns',   sel:'.gantt',                 ms:6200 },
-    { k:'s15', screen:'campaigns',   sel:'.g-bar.clash',           ms:3400, xp:'conflict', xpMs:6600 },
+    { k:'s14', screen:'campaigns',   sel:'.gantt',                 ms:10700 },
+    { k:'s15', screen:'campaigns',   sel:'.g-bar.clash',           ms:7900, xp:'conflict', xpMs:6600 },
 
-    { k:'s16', screen:'technicians', sel:'.tbl tbody tr:nth-child(4)', ms:6600 },
-    { k:'s17', screen:'technicians', sel:'[data-xp="gwo"]',        ms:2600, xp:'gwo', xpMs:6400 },
+    { k:'s16', screen:'technicians', sel:'.tbl tbody tr:nth-child(4)', ms:11100 },
+    { k:'s17', screen:'technicians', sel:'[data-xp="gwo"]',        ms:7100, xp:'gwo', xpMs:6400 },
 
-    { k:'s18', screen:'field',       sel:'.phone',                 ms:6400 },
-    { k:'s19', screen:'field',       sel:'#btn-sync',              ms:2600, xp:'sync',
+    { k:'s18', screen:'field',       sel:'.phone',                 ms:10900 },
+    { k:'s19', screen:'field',       sel:'#btn-sync',              ms:7100, xp:'sync',
       xpMs:6200, act:function(){ setTimeout(function(){
         var b = document.getElementById('btn-sync');
         if (b && !b.disabled){ b.disabled = true; if (window.__doSync) window.__doSync(); }
       }, 1400); } },
 
-    { k:'s20', screen:'ai',          sel:'.ai-sug',                ms:5600 },
-    { k:'s21', screen:'ai',          sel:'.chat',                  ms:7000, act:askDemo },
-    { k:'s22', screen:'ai',          sel:'[data-csv]',             ms:6000, act:askDemo },
+    { k:'s20', screen:'ai',          sel:'.ai-sug',                ms:10100 },
+    { k:'s21', screen:'ai',          sel:'.chat',                  ms:11500, act:askDemo },
+    { k:'s22', screen:'ai',          sel:'[data-csv]',             ms:10500, act:askDemo },
 
-    { k:'s23', screen:'dashboard',   sel:null,                     ms:7000 }
+    { k:'s23', screen:'dashboard',   sel:null,                     ms:11500 }
   ];
 
   var i = 0, playing = false, timer = null, built = false;
@@ -156,7 +156,9 @@ window.Tour = (function(){
     cur = node;
 
     if (!node){
+      /* paso centrado: oscurecido con desenfoque en toda la pantalla */
       el.ring.hidden = true;
+      el.dim.hidden = false;
       el.pop.classList.add('mid');
       el.pop.style.left = ''; el.pop.style.top = '';
       return;
@@ -166,6 +168,9 @@ window.Tour = (function(){
     var r = node.getBoundingClientRect();
     var pad = 7;
 
+    /* hay algo que enfocar: el anillo oscurece todo menos su interior,
+       asi que la capa de desenfoque debe apartarse */
+    el.dim.hidden = true;
     el.ring.hidden = false;
     el.ring.style.left   = (r.left - pad) + 'px';
     el.ring.style.top    = (r.top - pad) + 'px';
@@ -206,7 +211,6 @@ window.Tour = (function(){
     var needsNav = (location.hash.replace('#/','') !== s.screen);
     if (needsNav) location.hash = '#/' + s.screen;
 
-    el.dim.hidden = false;
     el.pop.hidden = false;
     el.ctl.hidden = false;
 
@@ -272,7 +276,6 @@ window.Tour = (function(){
     el.pp.textContent = playing ? t('tr.pause') : t('tr.resume');
     el.pp.classList.toggle('paused', !playing);
     if (playing){
-      el.dim.hidden = false;
       render(); schedule();
     } else {
       clearTimeout(timer);
