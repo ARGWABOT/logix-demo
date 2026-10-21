@@ -192,6 +192,9 @@ window.I18N = {
     'xp.sync.rd':'Traceability holds exactly where competing platforms break, because the phone never needed the network.',
     'xp.sync.n':'Original timestamps are preserved, not the upload time.',
 
+    'tr.tryFilter':'Filter to PPE only', 'tr.doneFilter':'Done — the list narrowed',
+    'tr.tryExpired':'Show only the blocked ones', 'tr.doneExpired':'Done — only the blocked ones',
+    'tr.tryCsv':'Download the spreadsheet', 'tr.doneCsv':'Downloaded — check your downloads',
     'tr.show':'Show me what happens', 'tr.again':'Watch it again',
     'tr.waiting':'The presentation is waiting for you',
     'ui.replay':'Replay', 'ui.ofSteps':'Step {a} of {b}',
@@ -442,6 +445,9 @@ window.I18N = {
     'xp.sync.rd':'La trazabilidad aguanta justo donde las plataformas comerciales se rompen, porque el teléfono nunca necesitó la red.',
     'xp.sync.n':'Se conserva la hora original, no la hora de subida.',
 
+    'tr.tryFilter':'Filtrar solo EPI', 'tr.doneFilter':'Hecho: la lista se redujo',
+    'tr.tryExpired':'Ver solo los bloqueados', 'tr.doneExpired':'Hecho: solo los bloqueados',
+    'tr.tryCsv':'Descargar la hoja de cálculo', 'tr.doneCsv':'Descargado: mire sus descargas',
     'tr.show':'Ver qué ocurre', 'tr.again':'Verlo otra vez',
     'tr.waiting':'La presentación le está esperando',
     'ui.replay':'Repetir', 'ui.ofSteps':'Paso {a} de {b}',
@@ -692,6 +698,9 @@ window.I18N = {
     'xp.sync.rd':'A rastreabilidade aguenta exatamente onde as plataformas comerciais falham, porque o telemóvel nunca precisou da rede.',
     'xp.sync.n':'Preserva-se a hora original, não a hora de carregamento.',
 
+    'tr.tryFilter':'Filtrar só EPI', 'tr.doneFilter':'Feito: a lista reduziu-se',
+    'tr.tryExpired':'Ver só os bloqueados', 'tr.doneExpired':'Feito: só os bloqueados',
+    'tr.tryCsv':'Descarregar a folha de cálculo', 'tr.doneCsv':'Descarregado: veja as transferências',
     'tr.show':'Ver o que acontece', 'tr.again':'Ver outra vez',
     'tr.waiting':'A apresentação está à sua espera',
     'ui.replay':'Repetir', 'ui.ofSteps':'Passo {a} de {b}',

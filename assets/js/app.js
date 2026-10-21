@@ -652,6 +652,7 @@
     applyStatic();
     buildNav();
     render();
+    if (window.Tour && Tour.relang) Tour.relang();
   }
 
   /* ---------------- arranque ---------------- */

@@ -543,3 +543,22 @@ table.tbl td.r{text-align:right}
   text-transform:uppercase;color:var(--mute);margin-bottom:2px}
 .xp-foot{gap:10px}
 .xp-foot .btn{white-space:nowrap}
+
+/* el boton de una interaccion ya realizada queda como confirmacion */
+.tr-cta button.done[disabled]{opacity:1;cursor:default;
+  background:var(--accent-soft);color:var(--accent-dk);border:1px solid var(--accent-line)}
+.tr-cta button.done[disabled] .ic{stroke-width:3}
+
+/* en pantallas estrechas el globo se estrecha para dejar sitio al foco */
+@media (max-width:1200px){
+  .tr-pop{width:330px}
+  .tr-pop h3{font-size:18px}
+  .tr-pop p{font-size:14px}
+  .tr-pop.mid{width:460px}
+}
+@media (max-height:820px){
+  .tr-pop{padding:16px 19px 15px}
+  .tr-pop h3{margin:6px 0 5px}
+  .tr-cta{margin-top:12px;padding-top:11px}
+  .tr-cta button{padding:10px 14px;font-size:14px}
+}
