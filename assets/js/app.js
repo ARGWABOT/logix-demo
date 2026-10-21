@@ -460,6 +460,7 @@
     });
   }
 
+  window.__doSync = doSync;
   function doSync(){
     var net = document.getElementById('ph-net');
     var txt = document.getElementById('ph-net-t');
@@ -675,8 +676,11 @@
     });
 
     document.getElementById('btn-tour').addEventListener('click', function(){
-      toast(t('tour.d'));
+      Tour.start();
     });
+
+    /* al abrir la demo se ofrece la presentación automática */
+    setTimeout(function(){ Tour.offer(); }, 400);
   }
 
   if (document.readyState === 'loading')
