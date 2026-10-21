@@ -71,6 +71,56 @@ window.DATA = (function(){
       serial:'—', cat:'consum', status:'ok', site:'whs', holder:null, cal:null, qty:28 }
   ];
 
+  /* ---------------- kits ----------------
+     Un kit se reserva y se entrega como una sola unidad. Su estado lo
+     manda el elemento peor parado: si un arnés está bloqueado, el kit
+     entero deja de poder entregarse.                                   */
+  var KITS = [
+    { code:'KT-TRQ-M36', name:'kit.torque', items:['TW-2500-01','TM-900-01','CS-BOLT-M36'],
+      site:'whs' },
+    { code:'KT-HGT-B',   name:'kit.height', items:['HN-FB-22','SRL-20-06','RK-EVAC-03'],
+      site:'whs' },
+    { code:'KT-BLD-01', name:'kit.blade',  items:['DR-INSP-02','TH-CAM-01','MM-INS-04'],
+      site:'whs' }
+  ];
+
+  var ORDER = ['blocked','maintenance','out','reserved','ok'];
+
+  function kits(){
+    return KITS.map(function(k){
+      var parts = k.items.map(byCode).filter(Boolean);
+      var worst = 'ok';
+      parts.forEach(function(p){
+        if (ORDER.indexOf(p.status) < ORDER.indexOf(worst)) worst = p.status;
+      });
+      var cal = null;
+      parts.forEach(function(p){
+        if (p.cal === null) return;
+        if (cal === null || p.cal < cal) cal = p.cal;
+      });
+      var weak = parts.filter(function(p){ return p.status === worst; })[0];
+      return { kit:k, parts:parts, status:worst, cal:cal, weak:weak };
+    });
+  }
+
+  /* ---------------- órdenes de trabajo ----------------
+     state: open | progress | wait | done                              */
+  var WORK = [
+    { id:'WO-1184', code:'CH-2T-02',   k:'wo.brake',   by:'t4', days:3,  state:'progress' },
+    { id:'WO-1179', code:'TW-2500-04', k:'wo.lab',     by:'t1', days:6,  state:'wait' },
+    { id:'WO-1172', code:'HN-FB-22',   k:'wo.webbing', by:'t5', days:1,  state:'open' },
+    { id:'WO-1165', code:'GD-4X-08',   k:'wo.drift',   by:'t3', days:11, state:'done' }
+  ];
+
+  /* ---------------- mantenimiento preventivo ----------------
+     Cada plan se dispara por calendario y abre las órdenes solo.      */
+  var PREV = [
+    { k:'pv.ppe',     every:'pv.monthly',   n:5, due:6  },
+    { k:'pv.gas',     every:'pv.quarterly', n:2, due:2  },
+    { k:'pv.torque',  every:'pv.halfYear',  n:6, due:19 },
+    { k:'pv.lifting', every:'pv.yearly',    n:3, due:48 }
+  ];
+
   var ACTIVITY = [
     { who:'t1', what:'issued',   obj:'TW-2500-01', site:'nf1', min:4  },
     { who:'t4', what:'flagged',  obj:'CH-2T-02',   site:'whs', min:22 },
@@ -116,7 +166,8 @@ window.DATA = (function(){
 
 
   /* ---------------- solicitudes (fase B) ----------------
-     state: pending | approved | rejected                       */
+     state: pending | approved | rejected
+     kind : equipment | purchase | transfer  (tipos de solicitud)      */
   var REQUESTS = [
     { id:'RQ-2291', tech:'t2', site:'nf2', campaign:'Blade inspection NF-II',
       from:'Mon 24', to:'Thu 27', state:'pending', ago:12,
@@ -135,6 +186,15 @@ window.DATA = (function(){
     { id:'RQ-2287', tech:'t3', site:'nf2', campaign:'Yaw motor replacement',
       from:'Thu 27', to:'Fri 28', state:'pending', ago:190,
       items:[ {code:'CH-1T-05', ok:true}, {code:'WL-SLING-11', ok:true} ] },
+
+    /* el mismo buzón recibe otros tipos de solicitud, cada uno con su
+       formulario y su cadena de aprobación */
+    { id:'RQ-2293', kind:'purchase', tech:'t1', site:'whs', campaign:'req.buy.title',
+      from:'—', to:'—', state:'pending', ago:30, budget:'8,400 USD',
+      items:[ {code:'BT-SET-36 ×2', ok:true} ], note:'req.buy.note' },
+    { id:'RQ-2292', kind:'transfer', tech:'t5', site:'hbo', campaign:'req.move.title',
+      from:'Tue 25', to:'Wed 26', state:'pending', ago:6, carrier:'req.move.carrier',
+      items:[ {code:'GD-4X-08', ok:true}, {code:'RK-EVAC-03', ok:true} ], note:'req.move.note' },
     { id:'RQ-2285', tech:'t1', site:'whs', campaign:'Tool calibration return',
       from:'Fri 21', to:'Fri 21', state:'approved', ago:1440,
       items:[ {code:'TW-1200-02', ok:true} ] }
@@ -222,9 +282,24 @@ window.DATA = (function(){
     { id:'q3', kind:'rank', unit:'ai.unit.days',
       rows:[ ['R. Duarte',1.8], ['S. Lindqvist',1.1], ['M. Haddad',0.6] ] },
     { id:'q4', kind:'table', unit:'ai.unit.count',
+      cols:['col.code','cmp.col.kind','cmp.col.due'], cell:'due',
       rows:[ ['TW-2500-04','Calibration','-6'], ['HN-FB-22','Inspection','-2'],
              ['SRL-20-06','Inspection','9'],   ['CH-1T-05','Inspection','12'],
-             ['GD-4X-08','Calibration','16'],  ['BT-SET-07','Calibration','27'] ] }
+             ['GD-4X-08','Calibration','16'],  ['BT-SET-07','Calibration','27'] ] },
+
+    /* valor contable y depreciación: el informe financiero de Cheqroom */
+    { id:'q5', kind:'table', unit:'ai.unit.money',
+      cols:['col.asset','ai.col.bought','ai.col.value','ai.col.dep'],
+      rows:[ ['HYTORC Stealth 4 ×3','2022','42,100','−38 %'],
+             ['ITH SF-36 / SF-30',  '2021','27,600','−45 %'],
+             ['DJI M350 RTK',       '2024','11,900','−22 %'],
+             ['FLIR E96',           '2023','18,400','−31 %'],
+             ['Petzl / 3M PPE ×14', '2023',' 9,700','−40 %'] ] },
+
+    /* disponibilidad predictiva: qué va a faltar antes de que falte */
+    { id:'q6', kind:'bar', unit:'ai.unit.short',
+      rows:[ ['Bolt tensioner M36',2], ['Torque wrench 2,500 Nm',1],
+             ['SRL 20 m',3], ['4-gas detector',1] ] }
   ];
 
   function unlocks(id){ return UNLOCKS[id] || []; }
@@ -234,6 +309,7 @@ window.DATA = (function(){
     requests:REQUESTS, campaigns:CAMPAIGNS, bookings:BOOKINGS, days:DAYS,
     bySite:bySite, byTech:byTech, byCode:byCode, byCamp:byCamp,
     queue:QUEUE, ai:AI, unlocks:unlocks,
+    kits:kits, work:WORK, prev:PREV,
     counts:counts, siteLoad:siteLoad, certs:certs, certCounts:certCounts
   };
 })();

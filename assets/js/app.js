@@ -9,11 +9,13 @@
     { id:'dashboard',   icon:'i-grid',     build:dashboard },
     { id:'inventory',   icon:'i-box',      build:inventory },
     { id:'compliance',  icon:'i-shield',   build:compliance, badge:'3' },
-    { id:'requests',    icon:'i-inbox',    build:requests,   badge:'5' },
+    { id:'maintenance', icon:'i-wrench',   build:maintenance, badge:'3' },
+    { id:'requests',    icon:'i-inbox',    build:requests,   badge:'7' },
     { id:'campaigns',   icon:'i-calendar', build:campaigns },
     { id:'technicians', icon:'i-users',    build:technicians },
     { id:'field',       icon:'i-phone',    build:field },
-    { id:'ai',          icon:'i-spark',    build:ai }
+    { id:'ai',          icon:'i-spark',    build:ai },
+    { id:'platform',    icon:'i-settings', build:platform }
   ];
 
   /* ---------------- utilidades ---------------- */
@@ -54,7 +56,7 @@
     view.innerHTML =
       '<div class="row k4">' +
         kpi('i-box',   'kpi.inField',  c.out,     t('kpi.ofTotal',{n:c.total}), '') +
-        kpi('i-clock', 'kpi.dueBack',  6,         t('kpi.acrossSites',{n:3}), '') +
+        kpi('i-clock', 'kpi.dueBack',  6,         t('kpi.acrossSites',{n:3}), '', 'remind') +
         kpi('i-alert', 'kpi.expiring', c.expiring,t('kpi.next30'), 'warn') +
         kpi('i-shield','kpi.blocked',  c.blocked, t('kpi.cannotIssue'), 'alarm') +
       '</div>' +
@@ -81,8 +83,8 @@
       '<div class="card"><div class="card-b">' + utilChart() + '</div></div>';
   }
 
-  function kpi(icon, labelKey, val, sub, mod){
-    return '<div class="card kpi '+mod+'">' +
+  function kpi(icon, labelKey, val, sub, mod, xp){
+    return '<div class="card kpi '+mod+(xp?' tap':'')+'"'+(xp?' data-xp="'+xp+'"':'')+'>' +
       '<div class="lbl">'+ic(icon)+t(labelKey)+'</div>' +
       '<div class="val">'+val+'</div>' +
       '<div class="dlt">'+sub+'</div></div>';
@@ -179,8 +181,10 @@
   var invFilter = 'all';
 
   function inventory(view){
+    var kitList = D.kits();
     var cats = [
       { id:'all',     key:'inv.all' },
+      { id:'kits',    key:'inv.kits',   n:kitList.length },
       { id:'torque',  key:'inv.tools' },
       { id:'lifting', key:'inv.lifting' },
       { id:'ppe',     key:'inv.ppe' },
@@ -189,29 +193,71 @@
     ];
 
     var chips = cats.map(function(c){
-      var n = (c.id==='all') ? D.assets.length
+      var n = (c.n !== undefined) ? c.n
+            : (c.id==='all') ? D.assets.length
             : D.assets.filter(function(a){ return a.cat===c.id; }).length;
       return '<button class="chip'+(invFilter===c.id?' on':'')+'" data-cat="'+c.id+'">' +
              t(c.key)+'<span class="n">'+n+'</span></button>';
     }).join('');
 
-    var list = (invFilter==='all') ? D.assets
+    var esKit = (invFilter === 'kits');
+    var list = esKit ? kitList
+             : (invFilter==='all') ? D.assets
              : D.assets.filter(function(a){ return a.cat===invFilter; });
+
+    var head = esKit
+      ? '<th>'+t('inv.kit')+'</th><th>'+t('col.code')+'</th><th>'+t('col.status')+'</th>' +
+        '<th>'+t('inv.contents')+'</th><th>'+t('col.location')+'</th>' +
+        '<th>'+t('col.nextCal')+'</th><th></th>'
+      : '<th>'+t('col.asset')+'</th><th>'+t('col.code')+'</th><th>'+t('col.status')+'</th>' +
+        '<th>'+t('col.location')+'</th><th>'+t('col.holder')+'</th>' +
+        '<th>'+t('col.nextCal')+'</th><th></th>';
 
     view.innerHTML =
       '<div class="filters">'+chips+'</div>' +
+      (esKit ? '<p class="lead">'+t('inv.kitLead')+'</p>' : '') +
       '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>' +
-        '<th>'+t('col.asset')+'</th><th>'+t('col.code')+'</th><th>'+t('col.status')+'</th>' +
-        '<th>'+t('col.location')+'</th><th>'+t('col.holder')+'</th>' +
-        '<th>'+t('col.nextCal')+'</th><th></th>' +
-      '</tr></thead><tbody>' + list.map(row).join('') + '</tbody></table></div>' +
+        head +
+      '</tr></thead><tbody>' + list.map(esKit ? kitRow : row).join('') + '</tbody></table></div>' +
       '<div class="card-b" style="border-top:1px solid var(--line-2);color:var(--mute);font-size:12.5px">' +
-        t('inv.showing', { n:list.length, t:D.assets.length }) +
+        (esKit ? t('inv.showingKits', { n:list.length })
+               : t('inv.showing', { n:list.length, t:D.assets.length })) +
       '</div></div>';
 
     view.querySelectorAll('[data-cat]').forEach(function(b){
       b.addEventListener('click', function(){ invFilter = b.dataset.cat; inventory(view); });
     });
+  }
+
+  /* un kit se entrega como una sola unidad: su estado lo manda
+     el elemento peor parado, y eso se ve en la propia fila */
+  function kitRow(k){
+    var site = D.bySite(k.kit.site);
+    var frenado = (k.status === 'blocked' || k.status === 'maintenance');
+
+    var parts = k.parts.map(function(p){
+      var mal = (p.status === 'blocked' || p.status === 'maintenance');
+      return '<span class="req-i '+(mal ? 'bad' : 'ok')+'">' +
+             ic(mal ? 'i-x' : 'i-check') + esc(p.code) + '</span>';
+    }).join('');
+
+    /* solo el kit frenado explica por qué: lo que está fuera o reservado
+       no tiene nada que explicar, igual que un activo suelto */
+    var btn = frenado
+      ? '<button class="btn sm danger" data-xp="kit">'+t('inv.whyKit')+'</button>'
+      : (k.status === 'ok'
+          ? '<button class="btn sm" data-xp="checkout">'+t('inv.issueKit')+'</button>'
+          : '');
+
+    return '<tr>' +
+      '<td><div class="nm">'+t(k.kit.name)+'</div>' +
+        '<div class="sub">'+t('inv.parts',{n:k.parts.length})+'</div></td>' +
+      '<td><span class="code">'+esc(k.kit.code)+'</span></td>' +
+      '<td>'+stTag(k.status)+'</td>' +
+      '<td><div class="req-items" style="padding:0">'+parts+'</div></td>' +
+      '<td>'+esc(site ? site.short : '—')+'</td>' +
+      '<td>'+calTag({ cal:k.cal })+'</td>' +
+      '<td class="r">'+btn+'</td></tr>';
   }
 
   function row(a){
@@ -224,7 +270,10 @@
       ? '<button class="btn sm danger" data-xp="blocked">'+t('act.blocked')+'</button>'
       : (canIssue
           ? '<button class="btn sm" data-xp="checkout">'+t('inv.issue')+'</button>'
-          : '');
+          /* lo que está fuera se devuelve: el verbo que cierra el ciclo */
+          : (a.status === 'out'
+              ? '<button class="btn sm ghost" data-xp="checkin">'+t('inv.return')+'</button>'
+              : ''));
 
     return '<tr>' +
       '<td><div class="nm">'+esc(a.name)+'</div><div class="sub">'+esc(a.model)+
@@ -291,6 +340,148 @@
         t('cmp.viewCert') + '</button></td></tr>';
   }
 
+  /* ---------------- pantalla: mantenimiento ----------------
+     Marcar un activo con incidencia abre la orden de trabajo y lo saca
+     de la disponibilidad: es lo que conecta el taller con el calendario. */
+  var WO_CLASS = { open:'danger', progress:'out', wait:'warn', done:'ok' };
+
+  function maintenance(view){
+    var open = D.work.filter(function(w){ return w.state !== 'done'; });
+    var wait = D.work.filter(function(w){ return w.state === 'wait'; });
+    var soon = D.prev.filter(function(p){ return p.due <= 7; });
+
+    view.innerHTML =
+      '<p class="lead">' + t('mnt.lead') + '</p>' +
+      '<div class="row k3">' +
+        kpi('i-wrench',  'mnt.kOpen', open.length, t('mnt.kOpenS'), 'alarm') +
+        kpi('i-clock',   'mnt.kWait', wait.length, t('mnt.kWaitS'), 'warn') +
+        kpi('i-calendar','mnt.kPrev', soon.length, t('mnt.kPrevS'), '') +
+      '</div>' +
+
+      '<div class="sec-h"><h2>' + t('mnt.orders') + '</h2>' +
+        '<button class="btn sm" data-xp="workorder">' + t('mnt.report') + '</button></div>' +
+      '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+        '<th>' + t('mnt.col.id') + '</th><th>' + t('col.asset') + '</th>' +
+        '<th>' + t('mnt.col.fault') + '</th><th>' + t('mnt.col.by') + '</th>' +
+        '<th>' + t('mnt.col.age') + '</th><th>' + t('col.status') + '</th>' +
+      '</tr></thead><tbody>' + D.work.map(woRow).join('') + '</tbody></table></div></div>' +
+
+      '<div class="sec-h"><h2>' + t('mnt.prev') + '</h2></div>' +
+      '<p class="lead">' + t('mnt.prevLead') + '</p>' +
+      '<div class="card"><div class="tbl-wrap"><table class="tbl"><thead><tr>' +
+        '<th>' + t('mnt.col.plan') + '</th><th>' + t('mnt.col.every') + '</th>' +
+        '<th>' + t('mnt.col.assets') + '</th><th>' + t('mnt.col.next') + '</th>' +
+      '</tr></thead><tbody>' + D.prev.map(prevRow).join('') + '</tbody></table></div></div>';
+  }
+
+  function woRow(w){
+    var a = D.byCode(w.code), who = D.byTech(w.by);
+    return '<tr>' +
+      '<td><span class="code">' + esc(w.id) + '</span></td>' +
+      '<td><div class="nm">' + esc(a ? a.name : w.code) + '</div>' +
+        '<div class="sub">' + esc(w.code) + '</div></td>' +
+      '<td>' + t(w.k) + '</td>' +
+      '<td><span class="sub">' + esc(who ? who.name : '—') + '</span></td>' +
+      '<td><span class="sub">' + t('mnt.days',{d:w.days}) + '</span></td>' +
+      '<td><span class="st ' + WO_CLASS[w.state] + '">' + t('mnt.st.' + w.state) + '</span></td>' +
+      '</tr>';
+  }
+
+  function prevRow(p){
+    var due = (p.due <= 7)
+      ? '<span class="st warn">' + t('mnt.inDays',{d:p.due}) + '</span>'
+      : '<span class="sub">' + t('mnt.inDays',{d:p.due}) + '</span>';
+    return '<tr>' +
+      '<td><div class="nm">' + t(p.k) + '</div></td>' +
+      '<td><span class="sub">' + t(p.every) + '</span></td>' +
+      '<td>' + p.n + '</td>' +
+      '<td>' + due + '</td></tr>';
+  }
+
+  /* ---------------- pantalla: plataforma ----------------
+     Lo que pregunta el departamento de sistemas, no la cuadrilla:
+     identificación, permisos, acceso corporativo e integración.      */
+  function platform(view){
+    view.innerHTML =
+      '<p class="lead">' + t('pl.lead') + '</p>' +
+
+      '<div class="row k3" id="pl-a">' +
+        plCard('i-scan', 'pl.id', [
+          'pl.id.1','pl.id.2','pl.id.3'
+        ], qrSvg()) +
+        plCard('i-shield', 'pl.roles', [
+          'pl.roles.1','pl.roles.2','pl.roles.3'
+        ], roleList()) +
+        plCard('i-users', 'pl.access', [
+          'pl.access.1','pl.access.2','pl.access.3'
+        ], axisSvg()) +
+      '</div>' +
+
+      '<div style="height:16px"></div>' +
+
+      '<div class="row k3" id="pl-b">' +
+        plCard('i-key', 'pl.sso', [
+          'pl.sso.1','pl.sso.2','pl.sso.3'
+        ], tagRow(['Okta','Microsoft Entra ID','Google','SAML 2.0'])) +
+        plCard('i-plug', 'pl.api', [
+          'pl.api.1','pl.api.2','pl.api.3'
+        ], '<div class="pl-code">POST /v1/checkouts<br>X-QW-Signature: HMAC-SHA256</div>') +
+        plCard('i-bell', 'pl.notif', [
+          'pl.notif.1','pl.notif.2','pl.notif.3'
+        ], tagRow(['E-mail','Push','SMS','Slack','Teams','iCal'])) +
+      '</div>';
+  }
+
+  function plCard(icon, titleKey, lines, extra){
+    return '<div class="card pl-c"><div class="card-b">' +
+      '<div class="pl-h">' + ic(icon) + '<b>' + t(titleKey) + '</b></div>' +
+      '<ul class="pl-l">' + lines.map(function(k){
+        return '<li>' + ic('i-check') + t(k) + '</li>'; }).join('') + '</ul>' +
+      (extra || '') +
+    '</div></div>';
+  }
+
+  function tagRow(list){
+    return '<div class="pl-tags">' + list.map(function(x){
+      return '<span>' + esc(x) + '</span>'; }).join('') + '</div>';
+  }
+
+  function roleList(){
+    var roles = [
+      { k:'pl.role.owner',  n:1 },
+      { k:'pl.role.admin',  n:3 },
+      { k:'pl.role.tech',   n:24 },
+      { k:'pl.role.self',   n:61 }
+    ];
+    return '<div class="pl-roles">' + roles.map(function(r){
+      return '<span><b>' + t(r.k) + '</b><i>' + r.n + '</i></span>'; }).join('') + '</div>';
+  }
+
+  /* etiqueta física: el código que se pega al activo */
+  function qrSvg(){
+    var m = ['1110111','1001001','1011101','1100011','1010110','1001101','1110011'];
+    var cells = '';
+    m.forEach(function(rowStr, y){
+      rowStr.split('').forEach(function(v, x){
+        if (v === '1') cells += '<rect x="' + (x*7) + '" y="' + (y*7) + '" width="7" height="7"/>';
+      });
+    });
+    return '<div class="pl-qr"><svg viewBox="0 0 49 49" width="62" height="62" fill="currentColor">' +
+      cells + '</svg><div><span class="code">TW-2500-01</span>' +
+      '<span class="sub">' + t('pl.id.tag') + '</span></div></div>';
+  }
+
+  /* los dos ejes: quién puede hacer qué, y qué material puede tocar */
+  function axisSvg(){
+    return '<div class="pl-axis">' +
+      '<div><span class="pl-ax-h">' + t('pl.access.people') + '</span>' +
+        '<i>GWO + rope access</i><i>Electrical L2</i><i>Torque certified</i></div>' +
+      '<div class="pl-ax-x">' + ic('i-arrow') + '</div>' +
+      '<div><span class="pl-ax-h">' + t('pl.access.gear') + '</span>' +
+        '<i>Harness · SRL</i><i>HV instruments</i><i>Tensioners</i></div>' +
+    '</div>';
+  }
+
   /* ---------------- pantalla: solicitudes ---------------- */
   function requests(view){
     var pend = D.requests.filter(function(r){ return r.state === 'pending'; });
@@ -300,8 +491,13 @@
       '<div class="reqs">' + pend.map(reqCard).join('') + '</div>';
   }
 
+  /* cada tipo de solicitud tiene su propio formulario y su propia
+     cadena de aprobación; la tarjeta cambia según el tipo */
+  var REQ_KIND = { equipment:'i-box', purchase:'i-cart', transfer:'i-arrow' };
+
   function reqCard(r){
     var tech = D.byTech(r.tech), site = D.bySite(r.site);
+    var kind = r.kind || 'equipment';
 
     var items = r.items.map(function(it){
       var cls = (it.ok === true) ? 'ok' : (it.ok === 'warn' ? 'warn' : 'bad');
@@ -311,19 +507,31 @@
       return '<span class="req-i ' + cls + '">' + ic(icon) + esc(it.code) + esc(note) + '</span>';
     }).join('');
 
+    var title = (kind === 'equipment') ? esc(r.campaign) : t(r.campaign);
+
+    var meta =
+      (kind === 'purchase'
+        ? '<span>' + t('req.budget') + ' <b>' + esc(r.budget) + '</b></span>'
+        : '<span>' + t(kind === 'transfer' ? 'req.to' : 'req.for') +
+          ' <b>' + esc(site.name) + '</b></span>') +
+      (r.from !== '—'
+        ? '<span>' + t('req.window') + ' <b>' + esc(r.from) + ' → ' + esc(r.to) + '</b></span>'
+        : '') +
+      (r.carrier ? '<span>' + t('req.carrier') + ' <b>' + t(r.carrier) + '</b></span>' : '') +
+      '<span>' + t('req.items',{n:r.items.length}) + '</span>' +
+      '<span>' + t('req.ago',{h:Math.round(r.ago/60)}) + '</span>';
+
     return '<div class="req">' +
       '<div class="req-h">' +
         '<div class="req-av">' + esc(tech.initials) + '</div>' +
-        '<div class="req-t"><b>' + esc(r.campaign) + '</b>' +
+        '<div class="req-t"><b>' + title + '</b>' +
           '<span>' + t('req.by') + ' ' + esc(tech.name) + ' · ' + esc(tech.role) + '</span></div>' +
+        '<span class="req-kind ' + kind + '">' + ic(REQ_KIND[kind]) +
+          t('req.kind.' + kind) + '</span>' +
         '<span class="req-id">' + esc(r.id) + '</span>' +
       '</div>' +
-      '<div class="req-meta">' +
-        '<span>' + t('req.for') + ' <b>' + esc(site.name) + '</b></span>' +
-        '<span>' + t('req.window') + ' <b>' + esc(r.from) + ' → ' + esc(r.to) + '</b></span>' +
-        '<span>' + t('req.items',{n:r.items.length}) + '</span>' +
-        '<span>' + t('req.ago',{h:Math.round(r.ago/60)}) + '</span>' +
-      '</div>' +
+      '<div class="req-meta">' + meta + '</div>' +
+      (r.note ? '<p class="req-note">' + t(r.note) + '</p>' : '') +
       '<div class="req-items">' + items + '</div>' +
       '<div class="req-f"><span></span><div class="btn-row">' +
         '<button class="btn sm ghost" data-xp="conflict">' + t('req.adjust') + '</button>' +
@@ -441,13 +649,29 @@
             '<b>' + t('fld.scan') + '</b></div>' +
           '<div class="ph-q"><h4>' + t('fld.lastScan') + '</h4>' +
             '<div id="ph-list">' + items + '</div></div>' +
-          '<div class="ph-sign">' + sigSvg() + '<span>' + t('fld.signature') + '</span></div>' +
+          '<div class="ph-sign tap" data-xp="doc">' + sigSvg() +
+            '<span>' + t('fld.signature') + '</span>' +
+            '<em>' + t('fld.seeDoc') + '</em></div>' +
         '</div></div>' +
 
         '<div class="fld-side">' +
           '<div class="card"><div class="card-b">' +
             '<p style="margin:0 0 14px;color:var(--body)">' + t('fld.caption') + '</p>' +
             '<button class="btn" id="btn-sync">' + t('fld.sync') + '</button>' +
+          '</div></div>' +
+
+          /* recuento móvil: la auditoría ligera contra una expectativa */
+          '<div class="card" style="margin-top:16px"><div class="card-b">' +
+            '<div class="pl-h">' + ic('i-scan') + '<b>' + t('fld.spot') + '</b></div>' +
+            '<p style="margin:0 0 12px;color:var(--body);font-size:13.5px">' +
+              t('fld.spotLead') + '</p>' +
+            '<div class="sp-h"><span>' + t('fld.spotKit') + '</span>' +
+              '<b>12 / 14</b></div>' +
+            '<div class="bar sp-bar"><i class="ok" style="width:85.7%"></i>' +
+              '<i class="danger" style="width:14.3%"></i></div>' +
+            '<div class="btn-row" style="margin-top:14px">' +
+              '<button class="btn sm" data-xp="spotcheck">' + t('fld.spotRun') + '</button>' +
+            '</div>' +
           '</div></div>' +
         '</div>' +
       '</div>';
@@ -559,24 +783,33 @@
     }).join('') + '</div>';
   }
 
+  function aiCols(def){
+    return def.cols || ['col.code','cmp.col.kind','cmp.col.due'];
+  }
+
   function aiTable(def){
+    var vence = (def.cell === 'due');     /* tabla de vencimientos: celdas con color */
     return '<div class="tbl-wrap"><table class="tbl"><thead><tr>' +
-      '<th>' + t('col.code') + '</th><th>' + t('cmp.col.kind') + '</th>' +
-      '<th>' + t('cmp.col.due') + '</th></tr></thead><tbody>' +
+      aiCols(def).map(function(k){ return '<th>' + t(k) + '</th>'; }).join('') +
+      '</tr></thead><tbody>' +
       def.rows.map(function(r){
-        var d = parseInt(r[2], 10);
-        var cell = (d < 0)
-          ? '<span class="st danger">' + t('cmp.overdueBy',{d:Math.abs(d)}) + '</span>'
-          : '<span class="st warn">' + d + 'd</span>';
-        return '<tr><td><span class="code">' + esc(r[0]) + '</span></td>' +
-               '<td>' + t('cmp.kind.' + r[1].toLowerCase()) + '</td>' +
-               '<td>' + cell + '</td></tr>';
+        return '<tr>' + r.map(function(v, j){
+          if (vence && j === 0) return '<td><span class="code">' + esc(v) + '</span></td>';
+          if (vence && j === 1) return '<td>' + t('cmp.kind.' + String(v).toLowerCase()) + '</td>';
+          if (vence && j === 2){
+            var d = parseInt(v, 10);
+            return '<td>' + (d < 0
+              ? '<span class="st danger">' + t('cmp.overdueBy',{d:Math.abs(d)}) + '</span>'
+              : '<span class="st warn">' + d + 'd</span>') + '</td>';
+          }
+          return '<td>' + (j === 0 ? '<div class="nm">' + esc(v) + '</div>' : esc(v)) + '</td>';
+        }).join('') + '</tr>';
       }).join('') + '</tbody></table></div>';
   }
 
   function aiCsv(def){
     var head = (def.kind === 'table')
-      ? [t('col.code'), t('cmp.col.kind'), t('cmp.col.due')]
+      ? aiCols(def).map(function(k){ return t(k); })
       : [t('col.asset'), t(def.unit)];
     var lines = [head.join(',')].concat(def.rows.map(function(r){
       return r.map(function(v){ return '"' + String(v).replace(/"/g,'""') + '"'; }).join(',');
@@ -608,7 +841,7 @@
   function buildNav(){
     var nav = document.getElementById('nav');
     nav.innerHTML = SCREENS.map(function(s, i){
-      return (i===2 ? '<div class="sep"></div>' : '') +
+      return (i===2 || s.id==='platform' ? '<div class="sep"></div>' : '') +
         '<a href="#/'+s.id+'" data-s="'+s.id+'">'+ic(s.icon) +
         '<span data-i18n="nav.'+s.id+'">'+t('nav.'+s.id)+'</span>' +
         (s.badge ? '<span class="badge">'+s.badge+'</span>' : '') + '</a>';

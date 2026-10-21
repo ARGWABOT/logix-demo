@@ -47,6 +47,42 @@ window.Explain = (function(){
     sync: {
       p:'xp.sync', ok:true,
       steps:[ ['s1',800,'done'], ['s2',1300,'done'], ['s3',900,'done'], ['s4',800,'done'] ]
+    },
+
+    /* devolución: el verbo que cierra el ciclo de la entrega */
+    checkin: {
+      p:'xp.checkin', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1200,'done'], ['s3',900,'done'], ['s4',800,'done'] ]
+    },
+
+    /* kit: se reserva como una unidad y hereda el peor estado */
+    kit: {
+      p:'xp.kit', ok:false,
+      steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',1200,'fail'], ['s4',900,'done'] ]
+    },
+
+    /* recuento móvil contra una expectativa concreta */
+    spotcheck: {
+      p:'xp.spotcheck', ok:false,
+      steps:[ ['s1',800,'done'], ['s2',1300,'done'], ['s3',1000,'fail'], ['s4',900,'done'] ]
+    },
+
+    /* orden de trabajo y preventivo */
+    workorder: {
+      p:'xp.workorder', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1100,'done'], ['s3',900,'done'], ['s4',900,'done'] ]
+    },
+
+    /* documento de entrega firmado y verificable */
+    doc: {
+      p:'xp.doc', ok:true,
+      steps:[ ['s1',900,'done'], ['s2',1100,'done'], ['s3',900,'done'], ['s4',900,'done'] ]
+    },
+
+    /* avisos automáticos y escalado */
+    remind: {
+      p:'xp.remind', ok:true,
+      steps:[ ['s1',800,'done'], ['s2',1000,'done'], ['s3',1200,'done'], ['s4',900,'done'] ]
     }
   };
 
